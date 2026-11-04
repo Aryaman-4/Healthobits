@@ -17,12 +17,12 @@ import { BranchIcon } from '../common/BranchIcon';
 import { ChunkyButton } from '../common/ChunkyButton';
 
 const CLASS_PRESETS = [
-  'Recovering Couch Potato',
-  'Level 9 Tea Alchemist',
+  'Cloud-Native Polymath',
   'Full-Stack Paladin',
+  'Level 9 Tea Alchemist',
   'Chaos Wizard of Midnight Coffee',
+  'Flute & Fineliner Sorcerer',
   'Novice Dungeon Cartographer',
-  'Sourdough Sorcerer',
   'Habit Beastmaster'
 ];
 

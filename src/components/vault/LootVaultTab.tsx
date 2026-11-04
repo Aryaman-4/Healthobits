@@ -73,7 +73,8 @@ export const LootVaultTab: React.FC = () => {
     claimLootReward,
     addLootOption,
     awardChest,
-    runEndOfMonthCeremony
+    runEndOfMonthCeremony,
+    setActiveStudioModal
   } = useGame();
 
   const { lootPool, pendingChests, character, branches, habits, monthlyQuests } = state;
@@ -138,19 +139,29 @@ export const LootVaultTab: React.FC = () => {
           </p>
         </div>
 
-        {/* End of Month Ceremony Launch Button */}
-        <ChunkyButton
-          variant="purple"
-          size="md"
-          onClick={() => {
-            sound.playTap();
-            setIsCeremonyWizardOpen(true);
-            setWizardStep(1);
-          }}
-        >
-          <Sparkles size={18} />
-          <span>Month-End Level-Up Ceremony</span>
-        </ChunkyButton>
+        {/* Top Action Buttons */}
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <ChunkyButton
+            variant="blue"
+            size="md"
+            onClick={() => setActiveStudioModal('sundayLinks')}
+          >
+            <span>⚡ Sunday Link Prep Wizard</span>
+          </ChunkyButton>
+
+          <ChunkyButton
+            variant="purple"
+            size="md"
+            onClick={() => {
+              sound.playTap();
+              setIsCeremonyWizardOpen(true);
+              setWizardStep(1);
+            }}
+          >
+            <Sparkles size={18} />
+            <span>Month-End Ceremony</span>
+          </ChunkyButton>
+        </div>
       </div>
 
       {/* 1. 4 Interactive 3D Treasure Chests */}

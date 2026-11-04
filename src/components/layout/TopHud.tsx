@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, Gift, Star, Volume2, VolumeX, Printer, RotateCcw, Sparkles } from 'lucide-react';
+import { Flame, Gift, Star, Volume2, VolumeX, Printer, RotateCcw, Sparkles, ShoppingBag } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 
 interface TopHudProps {
@@ -15,7 +15,8 @@ export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal }) => {
     soundEnabled,
     toggleSound,
     resetAllDemoData,
-    setActiveTab
+    setActiveTab,
+    setActiveStudioModal
   } = useGame();
 
   const { character } = state;
@@ -37,7 +38,7 @@ export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal }) => {
                 {character.name}
               </span>
               <span className="text-[10px] font-black uppercase px-1.5 py-0.5 rounded-full bg-[#DDF4FF] text-[#1CB0F6] border border-[#84D8FF] tracking-wide">
-                S{character.seasonNumber}
+                Season 1
               </span>
             </div>
             <div className="text-xs text-[#777777] font-semibold flex items-center gap-1 truncate max-w-[140px] sm:max-w-xs">
@@ -47,8 +48,18 @@ export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal }) => {
           </div>
         </div>
 
-        {/* Center / Right: RPG Stats HUD */}
+        {/* Center / Right: RPG Stats HUD & Quick-Loot */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Quick-Loot Bag Pill Button */}
+          <button
+            onClick={() => setActiveStudioModal('quickLoot')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF5D6] border-2 border-[#FFC800] border-b-4 text-[#A17200] font-black text-xs uppercase tracking-wider cursor-pointer hover:bg-[#ffeec2] active:translate-y-0.5 transition-all shadow-xs"
+            title="Open Quick-Loot Bag (Expenses, 10s Clips, Anki Export & CRM)"
+          >
+            <ShoppingBag size={15} />
+            <span className="hidden sm:inline">Quick-Loot</span>
+          </button>
+
           {/* Overall Level Shield */}
           <div
             onClick={() => setActiveTab('skillTree')}
@@ -136,4 +147,3 @@ export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal }) => {
     </header>
   );
 };
-

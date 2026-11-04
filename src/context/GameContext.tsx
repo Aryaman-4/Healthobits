@@ -10,6 +10,10 @@ import {
   LootItem,
   LootRarity,
   MonthlyQuest,
+  ScheduleFilter,
+  AlankarItem,
+  CareerLabItem,
+  SundayLinkPrep
 } from '../types';
 import { INITIAL_STATE } from '../data/seedData';
 import { sound } from '../utils/audio';
@@ -32,14 +36,23 @@ interface GameContextType {
   toggleSound: () => void;
   selectedDate: string;
   setSelectedDate: (date: string) => void;
-  activeSpread: 'first' | 'second'; // 1-15 or 16-31
+  activeSpread: 'first' | 'second';
   setActiveSpread: (spread: 'first' | 'second') => void;
+
+  // Schedule Filter (Auto detects MWF, TTS, Sunday or Manual Override)
+  scheduleFilter: ScheduleFilter;
+  setScheduleFilter: (filter: ScheduleFilter) => void;
+
+  // Active Sub-Studio Modal Launcher
+  activeStudioModal: 'workout' | 'music' | 'art' | 'reading' | 'career' | 'english' | 'quickLoot' | 'sundayLinks' | null;
+  setActiveStudioModal: (modal: 'workout' | 'music' | 'art' | 'reading' | 'career' | 'english' | 'quickLoot' | 'sundayLinks' | null) => void;
 
   // Habit Actions
   toggleHabitCompletion: (habitId: string, dateStr: string) => void;
   addHabit: (habit: Omit<Habit, 'id' | 'completedDates'>) => void;
   editHabit: (id: string, updates: Partial<Habit>) => void;
   deleteHabit: (id: string) => void;
+  updateHabitLaunchUrl: (habitId: string, url: string) => void;
 
   // Quest Actions
   toggleQuestCompletion: (questId: string) => void;
@@ -63,6 +76,18 @@ interface GameContextType {
   claimLootReward: (rarity: LootRarity, rewardTitle: string, triggerReason: string) => void;
   awardChest: (rarity: LootRarity) => void;
 
+  // Polymath Specific Actions
+  updateAlankarStatus: (id: number, instrument: 'flute' | 'whistle', status: 'locked' | 'practicing' | 'mastered') => void;
+  logBookPages: (increment: number, quote?: string) => void;
+  updateFinelinerCycle: (day: number, notes?: string, refUrl?: string) => void;
+  updateCareerLabStatus: (id: string, status: 'in_lab' | 'code_pushed' | 'published') => void;
+  addExpense: (amount: number, category: string) => void;
+  toggleVlogClip: (dateStr: string, clipNumber: 1 | 2) => void;
+  addAnkiCard: (front: string, back: string, category: 'quote' | 'sargam' | 'cloud' | 'vocab') => void;
+  exportAnkiCsv: () => void;
+  updateContactSpoken: (id: string, notes?: string) => void;
+  updateSundayLinks: (links: Partial<SundayLinkPrep>) => void;
+
   // Ceremony
   runEndOfMonthCeremony: () => void;
   resetAllDemoData: () => void;
@@ -75,12 +100,21 @@ interface GameContextType {
   keystoneStreakDays: number;
 }
 
-const STORAGE_KEY = 'questling_rpg_state_v1';
+const STORAGE_KEY = 'polymath_quest_rpg_state_v2';
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
+// Helper to determine day of week schedule
+export const getScheduleTypeFromDate = (dateStr: string): 'mwf' | 'tts' | 'sunday' => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dateObj = new Date(y, m - 1, d);
+  const day = dateObj.getDay(); // 0 is Sunday, 1 is Mon, 2 is Tue...
+  if (day === 0) return 'sunday';
+  if (day === 1 || day === 3 || day === 5) return 'mwf';
+  return 'tts';
+};
+
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Load initial state from localStorage or fallback to INITIAL_STATE
   const [state, setState] = useState<AppState>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -99,7 +133,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [selectedDate, setSelectedDate] = useState<string>(() => formatDate(new Date()));
   const [activeSpread, setActiveSpread] = useState<'first' | 'second'>('first');
 
-  // Save to localStorage whenever state changes
+  // Schedule Filter: defaults to 'today' (auto-detected), but user can override to 'mwf', 'tts', or 'sunday'
+  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>('today');
+
+  // Active Sub-Studio Modal Launcher
+  const [activeStudioModal, setActiveStudioModal] = useState<'workout' | 'music' | 'art' | 'reading' | 'career' | 'english' | 'quickLoot' | 'sundayLinks' | null>(null);
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -122,7 +161,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const isCompleted = habit.completedDates.includes(dateStr);
       let updatedDates: string[];
 
-      // Check if branch was already active on this date prior to this toggle
       const branchWasActiveBefore = isBranchActiveOnDate(habit.branchId, prev.habits, dateStr);
 
       if (isCompleted) {
@@ -141,13 +179,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         h.id === habitId ? { ...h, completedDates: updatedDates } : h
       );
 
-      // Check if this newly made the branch active
       const branchIsActiveNow = isBranchActiveOnDate(habit.branchId, updatedHabits, dateStr);
       if (!branchWasActiveBefore && branchIsActiveNow) {
-        // Celebratory mini confetti burst for +1 branch day!
         confetti({
-          particleCount: 24,
-          spread: 45,
+          particleCount: 28,
+          spread: 50,
           origin: { y: 0.8 },
           colors: [prev.branches[habit.branchId].colorHex, '#FFC800', '#58CC02']
         });
@@ -161,14 +197,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           pendingCommon += 1;
           sound.playUnlock();
           confetti({
-            particleCount: 60,
-            spread: 70,
+            particleCount: 70,
+            spread: 80,
             origin: { y: 0.6 }
           });
         }
       }
 
-      // Check if any new skill node unlocked by this new active day
+      // Check if any new skill node unlocked
       let pendingRare = prev.pendingChests.rare;
       let pendingEpic = prev.pendingChests.epic;
       if (!isCompleted) {
@@ -176,7 +212,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const oldProgress = getBranchNodeProgress(branch, prev.habits, prev.character.currentYearMonth);
         const newProgress = getBranchNodeProgress(branch, updatedHabits, prev.character.currentYearMonth);
 
-        // If a new threshold is crossed
         if (newProgress.unlockedThresholds.length > oldProgress.unlockedThresholds.length) {
           pendingRare += (newProgress.unlockedThresholds.length - oldProgress.unlockedThresholds.length);
           sound.playUnlock();
@@ -187,7 +222,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           });
         }
 
-        // If node 80 was just reached
         if (!oldProgress.unlockedThresholds.includes(80) && newProgress.unlockedThresholds.includes(80)) {
           pendingEpic += 1;
           sound.playUnlock();
@@ -216,7 +250,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       createdDate: formatDate(new Date())
     };
     setState(prev => {
-      // If marked as keystone, un-keystone other habits in this branch
       let habits = prev.habits;
       if (newHabit.isKeystone) {
         habits = habits.map(h => (h.branchId === newHabit.branchId ? { ...h, isKeystone: false } : h));
@@ -252,7 +285,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   };
 
-  // Toggle Quest Completion
+  const updateHabitLaunchUrl = (habitId: string, url: string) => {
+    sound.playTap();
+    setState(prev => ({
+      ...prev,
+      habits: prev.habits.map(h => (h.id === habitId ? { ...h, launchUrl: url } : h))
+    }));
+  };
+
   const toggleQuestCompletion = (questId: string) => {
     setState(prev => {
       const quest = prev.monthlyQuests.find(q => q.id === questId);
@@ -299,7 +339,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   };
 
-  // Import Feat Idea from Scratchpad into Monthly Side Quests
   const importFeatFromScratchpad = (branchId: BranchId, featText: string) => {
     sound.playTap();
     const newQuest: MonthlyQuest = {
@@ -458,7 +497,207 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   };
 
-  // End of Month Level Up Ceremony Roll-Over
+  // POLYMATH SPECIFIC ACTIONS
+  const updateAlankarStatus = (id: number, instrument: 'flute' | 'whistle', status: 'locked' | 'practicing' | 'mastered') => {
+    sound.playTap();
+    setState(prev => ({
+      ...prev,
+      alankars: prev.alankars.map(a =>
+        a.id === id
+          ? {
+              ...a,
+              [instrument === 'flute' ? 'fluteStatus' : 'whistleStatus']: status
+            }
+          : a
+      )
+    }));
+  };
+
+  const logBookPages = (increment: number, quote?: string) => {
+    sound.playCheck();
+    confetti({
+      particleCount: 20,
+      spread: 40,
+      origin: { y: 0.7 }
+    });
+
+    setState(prev => {
+      const nextPages = Math.min(prev.bookTracker.totalPages, prev.bookTracker.currentPage + increment);
+      const updatedQuotes = quote?.trim()
+        ? [
+            {
+              id: `q-${Date.now()}`,
+              text: quote.trim(),
+              date: formatDate(new Date())
+            },
+            ...prev.bookTracker.quotes
+          ]
+        : prev.bookTracker.quotes;
+
+      // Also add quote to Anki Cards in Quick-Loot
+      const updatedAnki = quote?.trim()
+        ? [
+            {
+              id: `anki-${Date.now()}`,
+              front: `Insight from "${prev.bookTracker.title}" (Page ${nextPages})`,
+              back: quote.trim(),
+              category: 'quote' as const,
+              date: formatDate(new Date())
+            },
+            ...prev.quickLoot.ankiCards
+          ]
+        : prev.quickLoot.ankiCards;
+
+      return {
+        ...prev,
+        bookTracker: {
+          ...prev.bookTracker,
+          currentPage: nextPages,
+          quotes: updatedQuotes
+        },
+        quickLoot: {
+          ...prev.quickLoot,
+          ankiCards: updatedAnki
+        }
+      };
+    });
+  };
+
+  const updateFinelinerCycle = (day: number, notes?: string, refUrl?: string) => {
+    sound.playTap();
+    setState(prev => ({
+      ...prev,
+      finelinerTracker: {
+        ...prev.finelinerTracker,
+        currentCycleDay: Math.min(14, Math.max(1, day)),
+        notes: notes !== undefined ? notes : prev.finelinerTracker.notes,
+        referenceUrl: refUrl !== undefined ? refUrl : prev.finelinerTracker.referenceUrl
+      }
+    }));
+  };
+
+  const updateCareerLabStatus = (id: string, status: 'in_lab' | 'code_pushed' | 'published') => {
+    sound.playTap();
+    if (status === 'published') {
+      sound.playUnlock();
+      confetti({ particleCount: 40, spread: 60, origin: { y: 0.6 } });
+    }
+    setState(prev => ({
+      ...prev,
+      careerLabs: prev.careerLabs.map(lab => (lab.id === id ? { ...lab, status } : lab))
+    }));
+  };
+
+  const addExpense = (amount: number, category: string) => {
+    sound.playTap();
+    const newExp = {
+      id: `exp-${Date.now()}`,
+      amount,
+      category: category.trim() || 'General Expense',
+      date: formatDate(new Date())
+    };
+    setState(prev => ({
+      ...prev,
+      quickLoot: {
+        ...prev.quickLoot,
+        expenses: [newExp, ...prev.quickLoot.expenses]
+      }
+    }));
+  };
+
+  const toggleVlogClip = (dateStr: string, clipNumber: 1 | 2) => {
+    sound.playCheck();
+    setState(prev => {
+      const current = prev.quickLoot.vlogClips[dateStr] || { clip1: false, clip2: false };
+      const updated = {
+        ...current,
+        [clipNumber === 1 ? 'clip1' : 'clip2']: !current[clipNumber === 1 ? 'clip1' : 'clip2']
+      };
+      return {
+        ...prev,
+        quickLoot: {
+          ...prev.quickLoot,
+          vlogClips: {
+            ...prev.quickLoot.vlogClips,
+            [dateStr]: updated
+          }
+        }
+      };
+    });
+  };
+
+  const addAnkiCard = (front: string, back: string, category: 'quote' | 'sargam' | 'cloud' | 'vocab') => {
+    sound.playTap();
+    const card = {
+      id: `anki-${Date.now()}`,
+      front: front.trim(),
+      back: back.trim(),
+      category,
+      date: formatDate(new Date())
+    };
+    setState(prev => ({
+      ...prev,
+      quickLoot: {
+        ...prev.quickLoot,
+        ankiCards: [card, ...prev.quickLoot.ankiCards]
+      }
+    }));
+  };
+
+  const exportAnkiCsv = () => {
+    sound.playChestOpen();
+    const cards = state.quickLoot.ankiCards;
+    if (cards.length === 0) {
+      alert('No flashcards logged yet to export!');
+      return;
+    }
+
+    const csvContent = cards
+      .map(c => `"${c.front.replace(/"/g, '""')}","${c.back.replace(/"/g, '""')}","${c.category}"`)
+      .join('\n');
+
+    const blob = new Blob([`Front,Back,Tags\n${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `PolymathQuest_AnkiExport_${formatDate(new Date())}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const updateContactSpoken = (id: string, notes?: string) => {
+    sound.playCheck();
+    confetti({ particleCount: 25, spread: 45, origin: { y: 0.7 } });
+    setState(prev => ({
+      ...prev,
+      quickLoot: {
+        ...prev.quickLoot,
+        contacts: prev.quickLoot.contacts.map(c =>
+          c.id === id
+            ? {
+                ...c,
+                lastSpokenDate: formatDate(new Date()),
+                notes: notes !== undefined ? notes : c.notes
+              }
+            : c
+        )
+      }
+    }));
+  };
+
+  const updateSundayLinks = (links: Partial<SundayLinkPrep>) => {
+    sound.playTap();
+    setState(prev => ({
+      ...prev,
+      sundayLinks: {
+        ...prev.sundayLinks,
+        ...links
+      }
+    }));
+  };
+
+  // End of Month Ceremony Roll-Over
   const runEndOfMonthCeremony = () => {
     sound.playLevelUp();
     confetti({
@@ -475,13 +714,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         prev.character.currentYearMonth
       );
 
-      // Advance month
       const nextMonthIndex = (prev.character.currentMonthIndex === 3 ? 1 : prev.character.currentMonthIndex + 1) as 1 | 2 | 3;
       const [year, month] = prev.character.currentYearMonth.split('-').map(Number);
       const nextDate = new Date(year, month, 1);
       const nextYearMonth = formatDate(nextDate).slice(0, 7);
 
-      // Record monthly summary
       const branchDaysSummary: Record<BranchId, number> = {} as Record<BranchId, number>;
       (Object.keys(prev.branches) as BranchId[]).forEach(id => {
         const branch = prev.branches[id];
@@ -502,7 +739,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updatedBranches[id] = {
           ...b,
           currentMonthStartLevel: branchLevels[id],
-          priorMonthsSeasonalDays: nextMonthIndex === 1 ? 0 : progress.cumulativeDays, // reset if season ends
+          priorMonthsSeasonalDays: nextMonthIndex === 1 ? 0 : progress.cumulativeDays,
           seasonStartLevel: nextMonthIndex === 1 ? branchLevels[id] : b.seasonStartLevel,
           unlockedNodes: unlockedNodeStatuses
         };
@@ -534,13 +771,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const resetAllDemoData = () => {
     sound.playTap();
-    if (window.confirm('Reset Questling back to the initial demo playground data?')) {
+    if (window.confirm('Reset Polymath Quest back to the initial playground data?')) {
       setState(INITIAL_STATE);
       localStorage.removeItem(STORAGE_KEY);
     }
   };
 
-  // Calculate Overall Level
   const { overallLevel, branchLevels, seasonalGains } = calculateCharacterOverallLevel(
     state.branches,
     state.habits,
@@ -554,7 +790,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     state.pendingChests.epic +
     state.pendingChests.legendary;
 
-  // Compute Keystone streak days (longest among current keystone habits)
   const keystoneHabits = state.habits.filter(h => h.isKeystone);
   const keystoneStreakDays = Math.max(
     0,
@@ -575,10 +810,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setSelectedDate,
         activeSpread,
         setActiveSpread,
+        scheduleFilter,
+        setScheduleFilter,
+        activeStudioModal,
+        setActiveStudioModal,
         toggleHabitCompletion,
         addHabit,
         editHabit,
         deleteHabit,
+        updateHabitLaunchUrl,
         toggleQuestCompletion,
         addQuest,
         deleteQuest,
@@ -593,6 +833,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addLootOption,
         claimLootReward,
         awardChest,
+        updateAlankarStatus,
+        logBookPages,
+        updateFinelinerCycle,
+        updateCareerLabStatus,
+        addExpense,
+        toggleVlogClip,
+        addAnkiCard,
+        exportAnkiCsv,
+        updateContactSpoken,
+        updateSundayLinks,
         runEndOfMonthCeremony,
         resetAllDemoData,
         overallLevel,

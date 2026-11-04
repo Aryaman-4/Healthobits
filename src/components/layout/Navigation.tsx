@@ -64,11 +64,11 @@ export const Navigation: React.FC = () => {
               ⚔️
             </div>
             <div>
-              <h1 className="font-black text-2xl tracking-tight text-[#3C3C3C] leading-none">
-                QUESTLING
+              <h1 className="font-black text-xl tracking-tight text-[#3C3C3C] leading-none">
+                POLYMATH QUEST
               </h1>
-              <p className="text-[11px] font-extrabold uppercase text-[#777777] tracking-wider mt-0.5">
-                Seasonal RPG Habits
+              <p className="text-[10px] font-extrabold uppercase text-[#777777] tracking-wider mt-0.5">
+                Duolingo RPG Life OS
               </p>
             </div>
           </div>
