@@ -480,3 +480,4 @@ export const QuickLootDrawer: React.FC = () => {
     </div>
   );
 };
+

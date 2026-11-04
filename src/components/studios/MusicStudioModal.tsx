@@ -187,3 +187,4 @@ export const MusicStudioModal: React.FC = () => {
     </div>
   );
 };
+

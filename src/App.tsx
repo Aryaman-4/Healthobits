@@ -15,16 +15,21 @@ import { CareerLabModal } from './components/studios/CareerLabModal';
 import { EnglishCoachModal } from './components/studios/EnglishCoachModal';
 import { QuickLootDrawer } from './components/studios/QuickLootDrawer';
 import { SundayLinkPrepModal } from './components/studios/SundayLinkPrepModal';
+import { SettingsDrawer } from './components/settings/SettingsDrawer';
 import { ShoppingBag } from 'lucide-react';
 
 const AppContent: React.FC = () => {
   const { activeTab, setActiveStudioModal } = useGame();
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#F7F7F7] text-[#3C3C3C] flex flex-col font-fredoka relative">
       {/* Top Persistent HUD Bar */}
-      <TopHud onOpenPrintModal={() => setIsPrintModalOpen(true)} />
+      <TopHud
+        onOpenPrintModal={() => setIsPrintModalOpen(true)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+      />
 
       {/* Main Layout Area */}
       <div className="flex-1 flex max-w-7xl w-full mx-auto">
@@ -65,6 +70,12 @@ const AppContent: React.FC = () => {
       <PrintBookletModal
         isOpen={isPrintModalOpen}
         onClose={() => setIsPrintModalOpen(false)}
+      />
+
+      {/* Dynamic 100% Full CRUD Settings Drawer */}
+      <SettingsDrawer
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
     </div>
   );

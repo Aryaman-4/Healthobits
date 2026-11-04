@@ -1,12 +1,13 @@
 import React from 'react';
-import { Flame, Gift, Star, Volume2, VolumeX, Printer, RotateCcw, Sparkles, ShoppingBag } from 'lucide-react';
+import { Flame, Gift, Star, Volume2, VolumeX, Printer, RotateCcw, Sparkles, ShoppingBag, Sliders } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 
 interface TopHudProps {
   onOpenPrintModal: () => void;
+  onOpenSettings?: () => void;
 }
 
-export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal }) => {
+export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal, onOpenSettings }) => {
   const {
     state,
     overallLevel,
@@ -115,6 +116,17 @@ export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal }) => {
 
           {/* Utility Action Buttons */}
           <div className="flex items-center gap-1 pl-1 border-l border-gray-200">
+            {/* System Engine & Settings Drawer */}
+            {onOpenSettings && (
+              <button
+                onClick={onOpenSettings}
+                className="p-2 rounded-xl text-[#777777] hover:text-[#1CB0F6] hover:bg-[#DDF4FF] border border-transparent hover:border-[#84D8FF] transition-all cursor-pointer"
+                title="System Settings & Full CRUD Gamification Engine"
+              >
+                <Sliders size={18} />
+              </button>
+            )}
+
             {/* Pocket Booklet Print */}
             <button
               onClick={onOpenPrintModal}
