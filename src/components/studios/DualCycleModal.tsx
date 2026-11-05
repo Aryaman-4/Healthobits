@@ -62,41 +62,41 @@ export const DualCycleModal: React.FC = () => {
   const bookPercentage = Math.round((bookTracker.currentPage / bookTracker.totalPages) * 100);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 animate-pop">
-      <div className="bg-white rounded-3xl border-2 border-b-8 border-[#1CB0F6] max-w-2xl w-full p-6 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-2 sm:p-4 animate-pop">
+      <div className="bg-white rounded-3xl border-2 border-b-8 border-[#1CB0F6] max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-6 max-h-[94vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b-2 border-gray-100 pb-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between border-b-2 border-gray-100 pb-3 gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setActiveTab('reading')}
-              className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === 'reading'
                   ? 'bg-[#DDF4FF] border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]'
                   : 'text-[#777777] hover:bg-gray-100'
               }`}
             >
-              <BookOpen size={16} />
-              <span>14-Day Book Cycle</span>
+              <BookOpen size={14} className="sm:w-4 sm:h-4" />
+              <span>14-Day Book</span>
             </button>
 
             <button
               onClick={() => setActiveTab('art')}
-              className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === 'art'
                   ? 'bg-[#FFF5D6] border-2 border-[#FFC800] border-b-4 text-[#A17200]'
                   : 'text-[#777777] hover:bg-gray-100'
               }`}
             >
-              <Palette size={16} />
-              <span>14-Day Fineliner Piece</span>
+              <Palette size={14} className="sm:w-4 sm:h-4" />
+              <span>14-Day Art Piece</span>
             </button>
           </div>
 
           <button
             onClick={() => setActiveStudioModal(null)}
-            className="w-9 h-9 rounded-full border-2 border-gray-200 text-gray-400 hover:text-gray-600 flex items-center justify-center font-black cursor-pointer"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-gray-200 text-gray-400 hover:text-gray-600 flex items-center justify-center font-black cursor-pointer shrink-0"
           >
-            <X size={18} />
+            <X size={16} className="sm:w-[18px] sm:h-[18px]" />
           </button>
         </div>
 

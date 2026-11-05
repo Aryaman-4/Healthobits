@@ -23,26 +23,26 @@ export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal, onOpenSettings
   const { character } = state;
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-2 border-[#E5E5E5] px-4 py-2.5 sm:px-6 shadow-sm">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-2 border-[#E5E5E5] px-2.5 sm:px-6 py-2 sm:py-2.5 shadow-sm">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-4">
         {/* Left: Character Avatar & Fun Class Badge */}
-        <div className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group" onClick={() => setActiveTab('character')}>
+        <div className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0" onClick={() => setActiveTab('character')}>
           <div
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-white font-black text-lg border-2 border-b-4 shadow-sm group-hover:scale-105 transition-transform"
+            className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-white font-black text-base sm:text-lg border-2 border-b-4 shadow-sm group-hover:scale-105 transition-transform shrink-0"
             style={{ backgroundColor: character.avatarBg, borderColor: '#33333333' }}
           >
             {character.avatarSeed === 'knight' ? '🛡️' : character.avatarSeed === 'wizard' ? '🧙' : '👑'}
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-[#3C3C3C] text-sm sm:text-base leading-tight group-hover:text-[#1CB0F6] transition-colors">
+              <span className="font-extrabold text-[#3C3C3C] text-xs sm:text-base leading-tight group-hover:text-[#1CB0F6] transition-colors truncate">
                 {character.name}
               </span>
-              <span className="text-[10px] font-black uppercase px-1.5 py-0.5 rounded-full bg-[#DDF4FF] text-[#1CB0F6] border border-[#84D8FF] tracking-wide">
-                Season 1
+              <span className="text-[9px] sm:text-[10px] font-black uppercase px-1.5 py-0.5 rounded-full bg-[#DDF4FF] text-[#1CB0F6] border border-[#84D8FF] tracking-wide shrink-0">
+                S1
               </span>
             </div>
-            <div className="text-xs text-[#777777] font-semibold flex items-center gap-1 truncate max-w-[140px] sm:max-w-xs">
+            <div className="hidden xs:flex text-[11px] sm:text-xs text-[#777777] font-semibold items-center gap-1 truncate max-w-[110px] sm:max-w-xs">
               <Sparkles size={11} className="text-[#FFC800] shrink-0" />
               <span className="truncate">{character.classTitle}</span>
             </div>
@@ -50,34 +50,34 @@ export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal, onOpenSettings
         </div>
 
         {/* Center / Right: RPG Stats HUD & Quick-Loot */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Quick-Loot Bag Pill Button */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Quick-Loot Bag Pill Button (Visible on Desktop, Mobile has Persistent Floating Action Button) */}
           <button
             onClick={() => setActiveStudioModal('quickLoot')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF5D6] border-2 border-[#FFC800] border-b-4 text-[#A17200] font-black text-xs uppercase tracking-wider cursor-pointer hover:bg-[#ffeec2] active:translate-y-0.5 transition-all shadow-xs"
+            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF5D6] border-2 border-[#FFC800] border-b-4 text-[#A17200] font-black text-xs uppercase tracking-wider cursor-pointer hover:bg-[#ffeec2] active:translate-y-0.5 transition-all shadow-xs"
             title="Open Quick-Loot Bag (Expenses, 10s Clips, Anki Export & CRM)"
           >
             <ShoppingBag size={15} />
-            <span className="hidden sm:inline">Quick-Loot</span>
+            <span>Quick-Loot</span>
           </button>
 
           {/* Overall Level Shield */}
           <div
             onClick={() => setActiveTab('skillTree')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-gradient-to-b from-[#FFF9E6] to-[#FFF0B8] border-2 border-[#FFC800] border-b-4 shadow-sm cursor-pointer active:translate-y-0.5 transition-transform"
+            className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-2xl bg-gradient-to-b from-[#FFF9E6] to-[#FFF0B8] border-2 border-[#FFC800] border-b-4 shadow-sm cursor-pointer active:translate-y-0.5 transition-transform"
             title="Total Character Level (Sum of 5 Attributes)"
           >
-            <Star size={16} className="text-[#E5A400] fill-[#FFC800]" />
-            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-1">
-              <span className="text-[10px] uppercase font-black text-[#A17200] leading-none">LVL</span>
-              <span className="text-sm sm:text-base font-black text-[#3C3C3C] leading-none">{overallLevel}</span>
+            <Star size={14} className="text-[#E5A400] fill-[#FFC800] shrink-0 sm:w-4 sm:h-4" />
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              <span className="text-[9px] sm:text-[10px] uppercase font-black text-[#A17200] leading-none">LVL</span>
+              <span className="text-xs sm:text-base font-black text-[#3C3C3C] leading-none">{overallLevel}</span>
             </div>
           </div>
 
           {/* Active Keystone Streak */}
           <div
             onClick={() => setActiveTab('today')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border-2 border-b-4 shadow-sm cursor-pointer active:translate-y-0.5 transition-transform ${
+            className={`flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-2xl border-2 border-b-4 shadow-sm cursor-pointer active:translate-y-0.5 transition-transform ${
               keystoneStreakDays > 0
                 ? 'bg-[#FFF2E6] border-[#FF9600] text-[#D85E00]'
                 : 'bg-gray-100 border-gray-300 text-gray-500'
@@ -85,11 +85,11 @@ export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal, onOpenSettings
             title="Keystone Habit Streak (Consecutive days)"
           >
             <Flame
-              size={18}
-              className={`${keystoneStreakDays > 0 ? 'text-[#FF7A00] fill-[#FF9600] animate-bounce-soft' : 'text-gray-400'}`}
+              size={15}
+              className={`shrink-0 sm:w-[18px] sm:h-[18px] ${keystoneStreakDays > 0 ? 'text-[#FF7A00] fill-[#FF9600] animate-bounce-soft' : 'text-gray-400'}`}
             />
-            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-1">
-              <span className="text-sm sm:text-base font-black leading-none">{keystoneStreakDays}</span>
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              <span className="text-xs sm:text-base font-black leading-none">{keystoneStreakDays}</span>
               <span className="text-[10px] font-bold uppercase hidden sm:inline leading-none">Streak</span>
             </div>
           </div>
@@ -97,7 +97,7 @@ export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal, onOpenSettings
           {/* Unopened Loot Chest Counter */}
           <button
             onClick={() => setActiveTab('vault')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border-2 border-b-4 cursor-pointer select-none transition-transform active:translate-y-0.5 ${
+            className={`flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-2xl border-2 border-b-4 cursor-pointer select-none transition-transform active:translate-y-0.5 ${
               totalPendingChests > 0
                 ? 'bg-[#EBF9DC] border-[#58CC02] text-[#347A01] animate-pulse'
                 : 'bg-white border-[#E5E5E5] text-[#777777]'
@@ -105,12 +105,12 @@ export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal, onOpenSettings
             title={`${totalPendingChests} Unopened Loot Chest(s)`}
           >
             <Gift
-              size={17}
-              className={totalPendingChests > 0 ? 'text-[#58CC02] fill-[#D7FFB8]' : 'text-gray-400'}
+              size={15}
+              className={`shrink-0 sm:w-[17px] sm:h-[17px] ${totalPendingChests > 0 ? 'text-[#58CC02] fill-[#D7FFB8]' : 'text-gray-400'}`}
             />
-            <span className="text-sm sm:text-base font-black leading-none">{totalPendingChests}</span>
+            <span className="text-xs sm:text-base font-black leading-none">{totalPendingChests}</span>
             {totalPendingChests > 0 && (
-              <span className="w-2 h-2 rounded-full bg-[#FF4B4B] animate-ping" />
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#FF4B4B] animate-ping" />
             )}
           </button>
 
@@ -120,17 +120,17 @@ export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal, onOpenSettings
             {onOpenSettings && (
               <button
                 onClick={onOpenSettings}
-                className="p-2 rounded-xl text-[#777777] hover:text-[#1CB0F6] hover:bg-[#DDF4FF] border border-transparent hover:border-[#84D8FF] transition-all cursor-pointer"
+                className="p-1.5 sm:p-2 rounded-xl text-[#777777] hover:text-[#1CB0F6] hover:bg-[#DDF4FF] border border-transparent hover:border-[#84D8FF] transition-all cursor-pointer"
                 title="System Settings & Full CRUD Gamification Engine"
               >
-                <Sliders size={18} />
+                <Sliders size={16} className="sm:w-[18px] sm:h-[18px]" />
               </button>
             )}
 
             {/* Pocket Booklet Print */}
             <button
               onClick={onOpenPrintModal}
-              className="p-2 rounded-xl text-[#777777] hover:text-[#1CB0F6] hover:bg-[#DDF4FF] border border-transparent hover:border-[#84D8FF] transition-all cursor-pointer"
+              className="hidden sm:flex p-2 rounded-xl text-[#777777] hover:text-[#1CB0F6] hover:bg-[#DDF4FF] border border-transparent hover:border-[#84D8FF] transition-all cursor-pointer"
               title="Print My Pocket Notebook Insert (French-Fold Zine)"
             >
               <Printer size={18} />
@@ -139,10 +139,10 @@ export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal, onOpenSettings
             {/* Sound Toggle */}
             <button
               onClick={toggleSound}
-              className="p-2 rounded-xl text-[#777777] hover:text-[#58CC02] hover:bg-[#D7FFB8] border border-transparent hover:border-[#58CC02] transition-all cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-xl text-[#777777] hover:text-[#58CC02] hover:bg-[#D7FFB8] border border-transparent hover:border-[#58CC02] transition-all cursor-pointer"
               title={soundEnabled ? 'Sound is ON (Click to mute)' : 'Sound is OFF (Click to unmute)'}
             >
-              {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} className="text-red-400" />}
+              {soundEnabled ? <Volume2 size={16} className="sm:w-[18px] sm:h-[18px]" /> : <VolumeX size={16} className="sm:w-[18px] sm:h-[18px] text-red-400" />}
             </button>
 
             {/* Demo Reset */}

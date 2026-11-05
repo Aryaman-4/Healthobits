@@ -215,3 +215,4 @@ CREATE TABLE IF NOT EXISTS sync_deltas (
 CREATE INDEX IF NOT EXISTS idx_sync_deltas_user_seq ON sync_deltas(user_id, seq);
 CREATE INDEX IF NOT EXISTS idx_habit_completions_date ON habit_completions(user_id, completed_date);
 CREATE INDEX IF NOT EXISTS idx_branch_daily_points_lookup ON branch_daily_points(user_id, season_id, branch_id);
+

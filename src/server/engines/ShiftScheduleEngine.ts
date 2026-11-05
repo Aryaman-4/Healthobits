@@ -180,3 +180,4 @@ export class ShiftScheduleEngine {
     return blocks;
   }
 }
+

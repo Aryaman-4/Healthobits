@@ -127,24 +127,24 @@ export const WorkoutStudioModal: React.FC = () => {
   const currentPhaseData = phases[activePhase - 1];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 animate-pop">
-      <div className="bg-white rounded-3xl border-2 border-b-8 border-[#FF4B4B] max-w-2xl w-full p-6 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-2 sm:p-4 animate-pop">
+      <div className="bg-white rounded-3xl border-2 border-b-8 border-[#FF4B4B] max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-6 max-h-[94vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b-2 border-gray-100 pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-12 h-12 rounded-2xl bg-[#FFDFE0] border-2 border-[#FF4B4B] flex items-center justify-center text-[#EA2B2B]">
-              <Dumbbell size={24} />
+        <div className="flex items-center justify-between border-b-2 border-gray-100 pb-3 gap-2">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#FFDFE0] border-2 border-[#FF4B4B] flex items-center justify-center text-[#EA2B2B] shrink-0">
+              <Dumbbell size={20} className="sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-black text-xl text-[#3C3C3C]">
-                  60m Calisthenics, Acrobatics & Yoga
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h3 className="font-black text-sm sm:text-xl text-[#3C3C3C] truncate">
+                  60m Calisthenics & Yoga
                 </h3>
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#FF4B4B] text-white">
-                  {isMWF ? 'MWF Strength' : 'TTS Plyo'}
+                <span className="text-[9px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-[#FF4B4B] text-white shrink-0">
+                  {isMWF ? 'MWF' : 'TTS'}
                 </span>
               </div>
-              <p className="text-xs text-[#777777] font-semibold mt-0.5">
+              <p className="text-[11px] sm:text-xs text-[#777777] font-semibold mt-0.5 truncate">
                 4-Phase Guided Training Engine for Full-Body Mastery
               </p>
             </div>
@@ -152,9 +152,9 @@ export const WorkoutStudioModal: React.FC = () => {
 
           <button
             onClick={() => setActiveStudioModal(null)}
-            className="w-9 h-9 rounded-full border-2 border-gray-200 text-gray-400 hover:text-gray-600 flex items-center justify-center font-black cursor-pointer"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-gray-200 text-gray-400 hover:text-gray-600 flex items-center justify-center font-black cursor-pointer shrink-0"
           >
-            <X size={18} />
+            <X size={16} className="sm:w-[18px] sm:h-[18px]" />
           </button>
         </div>
 

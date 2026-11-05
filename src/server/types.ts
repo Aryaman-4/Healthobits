@@ -42,3 +42,4 @@ export interface ApiResponse<T = unknown> {
   error?: string;
   timestamp: string;
 }
+

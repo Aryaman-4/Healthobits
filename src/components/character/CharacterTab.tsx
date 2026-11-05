@@ -118,25 +118,25 @@ export const CharacterTab: React.FC = () => {
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-16">
       {/* 1. Character Identity Card */}
-      <div className="bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-6 p-6 sm:p-8 shadow-sm space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-6 p-4 sm:p-8 shadow-sm space-y-4 sm:space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
           {/* Avatar & Title */}
-          <div className="flex items-center gap-5">
-            <div className="relative group">
+          <div className="flex items-center gap-3.5 sm:gap-5 min-w-0">
+            <div className="relative group shrink-0">
               <div
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl flex items-center justify-center text-3xl sm:text-4xl text-white font-black border-4 border-b-8 shadow-md"
+                className="w-16 h-16 sm:w-24 sm:h-24 rounded-3xl flex items-center justify-center text-2xl sm:text-4xl text-white font-black border-4 border-b-8 shadow-md"
                 style={{ backgroundColor: character.avatarBg, borderColor: '#22222233' }}
               >
                 {AVATAR_OPTIONS.find(a => a.id === character.avatarSeed)?.emoji || '🛡️'}
               </div>
 
               {/* Avatar Selector Mini Popover */}
-              <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+              <div className="mt-2 flex items-center gap-1 sm:gap-1.5 flex-wrap">
                 {AVATAR_OPTIONS.map(opt => (
                   <button
                     key={opt.id}
                     onClick={() => updateCharacter({ avatarSeed: opt.id })}
-                    className={`w-7 h-7 rounded-lg text-sm flex items-center justify-center cursor-pointer transition-transform hover:scale-110 ${character.avatarSeed === opt.id ? 'bg-[#DDF4FF] border border-[#1CB0F6]' : 'bg-gray-100'
+                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg text-xs sm:text-sm flex items-center justify-center cursor-pointer transition-transform hover:scale-110 ${character.avatarSeed === opt.id ? 'bg-[#DDF4FF] border border-[#1CB0F6]' : 'bg-gray-100'
                       }`}
                     title={opt.label}
                   >
@@ -146,14 +146,14 @@ export const CharacterTab: React.FC = () => {
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1 min-w-0 flex-1">
               {isEditingName ? (
                 <div className="space-y-2">
                   <input
                     type="text"
                     value={nameInput}
                     onChange={e => setNameInput(e.target.value)}
-                    className="px-3 py-1.5 rounded-xl border-2 border-gray-300 font-black text-lg text-[#3C3C3C] focus:border-[#1CB0F6] focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-xl border-2 border-gray-300 font-black text-base sm:text-lg text-[#3C3C3C] focus:border-[#1CB0F6] focus:outline-none"
                     placeholder="Hero Name"
                   />
                   <div className="flex items-center gap-2">
@@ -161,12 +161,12 @@ export const CharacterTab: React.FC = () => {
                       type="text"
                       value={classInput}
                       onChange={e => setClassInput(e.target.value)}
-                      className="px-3 py-1 rounded-lg border-2 border-gray-300 text-xs font-bold text-[#777777] focus:border-[#1CB0F6] focus:outline-none"
+                      className="flex-1 px-3 py-1 rounded-lg border-2 border-gray-300 text-xs font-bold text-[#777777] focus:border-[#1CB0F6] focus:outline-none"
                       placeholder="Class Title"
                     />
                     <button
                       onClick={handleSaveProfile}
-                      className="px-3 py-1 rounded-lg bg-[#58CC02] text-white font-black text-xs uppercase cursor-pointer"
+                      className="px-3 py-1 rounded-lg bg-[#58CC02] text-white font-black text-xs uppercase cursor-pointer shrink-0"
                     >
                       Save
                     </button>
@@ -175,29 +175,29 @@ export const CharacterTab: React.FC = () => {
               ) : (
                 <>
                   <div className="flex items-center gap-2">
-                    <h2 className="font-black text-2xl sm:text-3xl text-[#3C3C3C]">
+                    <h2 className="font-black text-xl sm:text-3xl text-[#3C3C3C] truncate">
                       {character.name}
                     </h2>
                     <button
                       onClick={() => setIsEditingName(true)}
-                      className="p-1.5 text-gray-400 hover:text-[#1CB0F6] rounded-lg transition-colors cursor-pointer"
+                      className="p-1.5 text-gray-400 hover:text-[#1CB0F6] rounded-lg transition-colors cursor-pointer shrink-0"
                       title="Edit Profile"
                     >
-                      <Edit3 size={16} />
+                      <Edit3 size={15} />
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-[#777777]">
-                    <Sparkles size={14} className="text-[#FFC800]" />
-                    <span>{character.classTitle}</span>
+                  <div className="flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-[#777777] truncate">
+                    <Sparkles size={14} className="text-[#FFC800] shrink-0" />
+                    <span className="truncate">{character.classTitle}</span>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-1">
-                    <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-[#DDF4FF] text-[#1CB0F6] border border-[#84D8FF]">
-                      Season {character.seasonNumber}: {character.seasonName}
+                  <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#DDF4FF] text-[#1CB0F6] border border-[#84D8FF]">
+                      S{character.seasonNumber}: {character.seasonName}
                     </span>
-                    <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-[#EBF9DC] text-[#347A01] border border-[#58CC02]">
-                      Month {character.currentMonthIndex} Active
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#EBF9DC] text-[#347A01] border border-[#58CC02]">
+                      Mo {character.currentMonthIndex} Active
                     </span>
                   </div>
                 </>
@@ -206,19 +206,19 @@ export const CharacterTab: React.FC = () => {
           </div>
 
           {/* Giant Overall Level Shield */}
-          <div className="flex items-center gap-4 p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-[#FFF9E6] to-[#FFF0B8] border-2 border-[#FFC800] border-b-6 shadow-sm self-start md:self-auto">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#FFC800] border-2 border-[#E5A400] flex items-center justify-center text-white shadow-inner">
-              <Star size={32} className="fill-white" />
+          <div className="flex items-center gap-3 sm:gap-4 p-3.5 sm:p-5 rounded-3xl bg-gradient-to-br from-[#FFF9E6] to-[#FFF0B8] border-2 border-[#FFC800] border-b-6 shadow-sm w-full md:w-auto">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-[#FFC800] border-2 border-[#E5A400] flex items-center justify-center text-white shadow-inner shrink-0">
+              <Star size={26} className="fill-white sm:w-8 sm:h-8" />
             </div>
             <div>
-              <div className="text-[11px] font-black uppercase text-[#A17200] tracking-wider">
-                Overall Character Level
+              <div className="text-[10px] sm:text-[11px] font-black uppercase text-[#A17200] tracking-wider">
+                Overall Level
               </div>
-              <div className="text-3xl sm:text-4xl font-black text-[#3C3C3C] leading-none mt-0.5">
+              <div className="text-2xl sm:text-4xl font-black text-[#3C3C3C] leading-none mt-0.5">
                 LVL {overallLevel}
               </div>
-              <div className="text-[10px] text-[#777777] font-bold mt-1">
-                Sum of 5 Attribute Branches
+              <div className="text-[9px] sm:text-[10px] text-[#777777] font-bold mt-1">
+                Sum of 5 Attributes
               </div>
             </div>
           </div>

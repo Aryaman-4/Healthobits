@@ -117,8 +117,8 @@ export const Navigation: React.FC = () => {
         </div>
       </aside>
 
-      {/* Mobile Floating Bottom Dock */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t-2 border-[#E5E5E5] px-2 py-2 flex items-center justify-around shadow-lg">
+      {/* Mobile Floating Bottom Dock with Safe Area Support */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t-2 border-[#E5E5E5] px-1.5 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-around shadow-xl">
         {navItems.map(item => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -127,16 +127,16 @@ export const Navigation: React.FC = () => {
             <button
               key={item.id}
               onClick={() => handleTabClick(item.id)}
-              className={`relative flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer select-none ${
+              className={`relative flex flex-col items-center justify-center py-1 px-2.5 sm:px-3 rounded-2xl transition-all cursor-pointer select-none min-w-[56px] ${
                 isActive
-                  ? 'bg-[#DDF4FF] border-2 border-[#84D8FF] text-[#1CB0F6] -translate-y-1'
-                  : 'text-[#777777] hover:text-[#3C3C3C]'
+                  ? 'bg-[#DDF4FF] border-2 border-[#84D8FF] border-b-3 text-[#1CB0F6] -translate-y-1 shadow-xs'
+                  : 'text-[#777777] hover:text-[#3C3C3C] active:scale-95'
               }`}
             >
               <div className="relative">
-                <Icon size={22} className={isActive ? 'text-[#1CB0F6]' : 'text-[#777777]'} />
+                <Icon size={20} className={isActive ? 'text-[#1CB0F6]' : 'text-[#777777]'} />
                 {item.badge !== undefined && (
-                  <span className="absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-[#FF4B4B] text-white text-[9px] font-black flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-[#FF4B4B] text-white text-[9px] font-black flex items-center justify-center animate-bounce-soft">
                     {item.badge}
                   </span>
                 )}

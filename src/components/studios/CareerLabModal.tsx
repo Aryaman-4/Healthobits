@@ -18,34 +18,34 @@ export const CareerLabModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 animate-pop">
-      <div className="bg-white rounded-3xl border-2 border-b-8 border-[#CE82FF] max-w-3xl w-full p-6 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-2 sm:p-4 animate-pop">
+      <div className="bg-white rounded-3xl border-2 border-b-8 border-[#CE82FF] max-w-3xl w-full p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-6 max-h-[94vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b-2 border-gray-100 pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-12 h-12 rounded-2xl bg-[#F3E5FF] border-2 border-[#CE82FF] flex items-center justify-center text-[#A560E8]">
-              <Cpu size={24} />
+        <div className="flex items-center justify-between border-b-2 border-gray-100 pb-3 gap-2">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#F3E5FF] border-2 border-[#CE82FF] flex items-center justify-center text-[#A560E8] shrink-0">
+              <Cpu size={20} className="sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-black text-xl text-[#3C3C3C]">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h3 className="font-black text-sm sm:text-xl text-[#3C3C3C] truncate">
                   Career Triad Engine
                 </h3>
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#CE82FF] text-white">
-                  Cloud + CyberSec + AI
+                <span className="text-[9px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-[#CE82FF] text-white shrink-0">
+                  Cloud + AI
                 </span>
               </div>
-              <p className="text-xs text-[#777777] font-semibold mt-0.5">
-                Linux Systems, GCP/AWS Security Architecture, and Python Agentic AI Labs
+              <p className="text-[11px] sm:text-xs text-[#777777] font-semibold mt-0.5 truncate">
+                Linux, GCP/AWS Security Architecture, and Agentic AI Labs
               </p>
             </div>
           </div>
 
           <button
             onClick={() => setActiveStudioModal(null)}
-            className="w-9 h-9 rounded-full border-2 border-gray-200 text-gray-400 hover:text-gray-600 flex items-center justify-center font-black cursor-pointer"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-gray-200 text-gray-400 hover:text-gray-600 flex items-center justify-center font-black cursor-pointer shrink-0"
           >
-            <X size={18} />
+            <X size={16} className="sm:w-[18px] sm:h-[18px]" />
           </button>
         </div>
 

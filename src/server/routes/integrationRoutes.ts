@@ -57,3 +57,4 @@ integrationRoutes.post('/integrations/anki/payload', zValidator('json', ankiSche
   const ankiNote = IntegrationBridges.createAnkiConnectPayload(front, back, category);
   return c.json({ success: true, data: ankiNote });
 });
+

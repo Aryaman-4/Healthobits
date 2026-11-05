@@ -59,3 +59,4 @@ export default {
   fetch: app.fetch,
   scheduled
 };
+

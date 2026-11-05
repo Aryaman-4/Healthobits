@@ -95,27 +95,27 @@ export const QuestsTab: React.FC = () => {
     <div className="space-y-8 max-w-6xl mx-auto pb-16">
       {/* 1. Main Quest Hero Banner (Duolingo Monthly Boss Challenge Card) */}
       {mainQuest ? (
-        <div className="relative overflow-hidden rounded-3xl border-2 border-b-6 border-[#FFC800] bg-gradient-to-r from-[#FFF8E6] via-[#FFF2CC] to-[#FFEAA8] p-6 sm:p-8 shadow-md">
+        <div className="relative overflow-hidden rounded-3xl border-2 border-b-6 border-[#FFC800] bg-gradient-to-r from-[#FFF8E6] via-[#FFF2CC] to-[#FFEAA8] p-4 sm:p-8 shadow-md">
           {/* Decorative Corner Crown Accent */}
           <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-[#FFC800]/20 pointer-events-none flex items-center justify-center transform rotate-12">
             <Crown size={80} className="text-[#FFC800]/40" />
           </div>
 
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-3 max-w-2xl">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+            <div className="space-y-2.5 sm:space-y-3 max-w-2xl">
               {/* Header Badges */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFC800] border-2 border-[#E5A400] text-[#3C3C3C] text-xs font-black uppercase tracking-wider shadow-xs">
-                  <Crown size={14} className="fill-[#3C3C3C]" />
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-[#FFC800] border-2 border-[#E5A400] text-[#3C3C3C] text-[11px] sm:text-xs font-black uppercase tracking-wider shadow-xs">
+                  <Crown size={13} className="fill-[#3C3C3C]" />
                   <span>Month {character.currentMonthIndex} Main Quest</span>
                 </span>
 
                 {/* Difficulty Stars */}
-                <div className="flex items-center gap-1 px-3 py-1 bg-white/80 rounded-full border border-[#E5A400]/40">
+                <div className="flex items-center gap-1 px-2.5 sm:px-3 py-1 bg-white/80 rounded-full border border-[#E5A400]/40">
                   {Array.from({ length: 5 }, (_, i) => (
                     <Star
                       key={i}
-                      size={14}
+                      size={13}
                       className={
                         i < (mainQuest.difficultyStars || 5)
                           ? 'text-[#E5A400] fill-[#FFC800]'
@@ -123,62 +123,62 @@ export const QuestsTab: React.FC = () => {
                       }
                     />
                   ))}
-                  <span className="text-[11px] font-black text-[#A17200] ml-1">
+                  <span className="text-[10px] sm:text-[11px] font-black text-[#A17200] ml-1">
                     {getDifficultyLabel(mainQuest.difficultyStars || 5)}
                   </span>
                 </div>
 
                 {/* Branch attribution */}
                 <span
-                  className="text-xs font-black uppercase px-2.5 py-1 rounded-full text-white shadow-xs"
+                  className="text-[11px] sm:text-xs font-black uppercase px-2 sm:px-2.5 py-1 rounded-full text-white shadow-xs"
                   style={{ backgroundColor: branches[mainQuest.branchId].colorHex }}
                 >
-                  +1 {branches[mainQuest.branchId].name} Level
+                  +1 {branches[mainQuest.branchId].name}
                 </span>
               </div>
 
               {/* Title */}
-              <h2 className="font-black text-2xl sm:text-3xl text-[#3C3C3C] tracking-tight leading-snug">
+              <h2 className="font-black text-lg sm:text-3xl text-[#3C3C3C] tracking-tight leading-snug break-words">
                 {mainQuest.title}
               </h2>
 
               {/* Custom Prize Pill */}
               {mainQuest.customReward && (
-                <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white/90 border-2 border-[#E5A400] shadow-xs">
-                  <Gift size={18} className="text-[#E5A400]" />
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-white/90 border-2 border-[#E5A400] shadow-xs">
+                  <Gift size={16} className="text-[#E5A400] shrink-0" />
                   <div className="text-xs">
-                    <span className="font-extrabold uppercase text-[#A17200] block text-[10px]">
+                    <span className="font-extrabold uppercase text-[#A17200] block text-[9px] sm:text-[10px]">
                       Dedicated Reward Prize:
                     </span>
-                    <span className="font-black text-[#3C3C3C]">{mainQuest.customReward}</span>
+                    <span className="font-black text-[#3C3C3C] text-xs sm:text-sm">{mainQuest.customReward}</span>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Right Action: Huge 3D Completion Button */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto">
               <button
                 onClick={() => toggleQuestCompletion(mainQuest.id)}
-                className={`px-6 py-4 rounded-2xl font-black text-sm uppercase tracking-wider cursor-pointer border-2 border-b-6 transition-all select-none active:translate-y-1 ${
+                className={`flex-1 md:flex-initial px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider cursor-pointer border-2 border-b-6 transition-all select-none active:translate-y-1 text-center ${
                   mainQuest.isCompleted
                     ? 'bg-[#58CC02] border-[#46A302] text-white shadow-lg'
                     : 'bg-white border-[#FFC800] text-[#A17200] hover:bg-[#fff7e0] shadow-sm'
                 }`}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                   <Check
-                    size={22}
+                    size={20}
                     strokeWidth={3.5}
                     className={mainQuest.isCompleted ? 'text-white' : 'text-gray-400'}
                   />
-                  <span>{mainQuest.isCompleted ? 'Main Quest Succeeded!' : 'Mark Quest Complete'}</span>
+                  <span>{mainQuest.isCompleted ? 'Main Quest Succeeded!' : 'Mark Complete'}</span>
                 </div>
               </button>
 
               <button
                 onClick={() => setIsEditMainModalOpen(true)}
-                className="p-3 bg-white/80 hover:bg-white rounded-2xl border-2 border-[#E5A400] text-[#A17200] transition-colors cursor-pointer"
+                className="p-3 bg-white/80 hover:bg-white rounded-2xl border-2 border-[#E5A400] text-[#A17200] transition-colors cursor-pointer shrink-0"
                 title="Edit Main Quest"
               >
                 <Edit2 size={16} />

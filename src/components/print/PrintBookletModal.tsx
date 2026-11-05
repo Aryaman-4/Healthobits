@@ -35,32 +35,32 @@ export const PrintBookletModal: React.FC<PrintBookletModalProps> = ({ isOpen, on
       {/* Outer Modal Container (hidden during actual window.print, except the printable content) */}
       <div className="bg-white rounded-3xl border-2 border-b-8 border-[#1CB0F6] max-w-5xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden print:border-none print:shadow-none print:max-w-none print:max-h-none print:w-full">
         {/* Modal Header (hidden during print) */}
-        <div className="p-4 sm:p-6 border-b-2 border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#DDF4FF] border-2 border-[#1CB0F6] flex items-center justify-center text-[#1CB0F6]">
-              <Printer size={24} />
+        <div className="p-3.5 sm:p-6 border-b-2 border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 print:hidden">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#DDF4FF] border-2 border-[#1CB0F6] flex items-center justify-center text-[#1CB0F6] shrink-0">
+              <Printer size={20} className="sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <h3 className="font-black text-xl text-[#3C3C3C]">
-                Printable Pocket Notebook Insert Generator
+            <div className="min-w-0">
+              <h3 className="font-black text-sm sm:text-xl text-[#3C3C3C] truncate">
+                Printable Pocket Insert Generator
               </h3>
-              <p className="text-xs text-[#777777] font-semibold">
-                Generate tactile paper inserts for your real-life bullet journal or pocket notebook.
+              <p className="text-[11px] sm:text-xs text-[#777777] font-semibold truncate">
+                Tactile paper inserts for your bullet journal or pocket notebook.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <ChunkyButton variant="blue" size="md" onClick={handleTriggerPrint}>
-              <Printer size={18} />
+          <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
+            <ChunkyButton variant="blue" size="sm" onClick={handleTriggerPrint}>
+              <Printer size={16} />
               <span>Print Now</span>
             </ChunkyButton>
 
             <button
               onClick={onClose}
-              className="w-10 h-10 rounded-2xl border-2 border-gray-200 text-gray-400 hover:text-gray-600 flex items-center justify-center font-black cursor-pointer"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl border-2 border-gray-200 text-gray-400 hover:text-gray-600 flex items-center justify-center font-black cursor-pointer shrink-0"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
         </div>

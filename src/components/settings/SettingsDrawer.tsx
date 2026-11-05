@@ -260,37 +260,37 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ isOpen, onClose,
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm transition-opacity">
-      <div className="relative w-full max-w-2xl bg-[#F7F7F7] h-full shadow-2xl flex flex-col border-l-4 border-[#E5E5E5] overflow-hidden animate-in slide-in-from-right duration-200">
+      <div className="relative w-full max-w-2xl bg-[#F7F7F7] h-full shadow-2xl flex flex-col border-l-0 sm:border-l-4 border-[#E5E5E5] overflow-hidden animate-in slide-in-from-right duration-200">
         
         {/* Header */}
-        <div className="p-5 bg-white border-b-4 border-[#E5E5E5] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#1CB0F6] border-2 border-[#1899D6] border-b-4 flex items-center justify-center text-white">
-              <Sliders size={20} className="stroke-[3]" />
+        <div className="p-3.5 sm:p-5 bg-white border-b-4 border-[#E5E5E5] flex items-center justify-between">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#1CB0F6] border-2 border-[#1899D6] border-b-4 flex items-center justify-center text-white shrink-0">
+              <Sliders size={18} className="stroke-[3]" />
             </div>
-            <div>
-              <h2 className="text-xl font-extrabold text-[#3C3C3C] tracking-tight">System Settings & Engine</h2>
-              <p className="text-xs font-bold text-gray-400">100% Full CRUD Customization • Edge Cloudflare D1</p>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-xl font-extrabold text-[#3C3C3C] tracking-tight truncate">System Settings & Engine</h2>
+              <p className="text-[10px] sm:text-xs font-bold text-gray-400 truncate">100% Full CRUD Customization • Edge Cloudflare D1</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 border-2 border-gray-300 border-b-4 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center text-gray-600"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gray-100 hover:bg-gray-200 border-2 border-gray-300 border-b-4 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center text-gray-600 shrink-0"
           >
-            <X size={20} className="stroke-[3]" />
+            <X size={18} className="stroke-[3]" />
           </button>
         </div>
 
         {/* Toast alert banner */}
         {notificationMsg && (
-          <div className="bg-[#58CC02] text-white px-4 py-2 font-black text-sm flex items-center justify-center gap-2 shadow-inner">
-            <Check size={18} className="stroke-[3]" />
-            {notificationMsg}
+          <div className="bg-[#58CC02] text-white px-3 sm:px-4 py-2 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-inner text-center">
+            <Check size={16} className="stroke-[3] shrink-0" />
+            <span>{notificationMsg}</span>
           </div>
         )}
 
         {/* Tab Navigation */}
-        <div className="flex bg-white px-4 pt-3 border-b-2 border-gray-200 gap-2 overflow-x-auto">
+        <div className="flex bg-white px-2 sm:px-4 pt-2 sm:pt-3 border-b-2 border-gray-200 gap-1 sm:gap-2 overflow-x-auto no-scrollbar">
           {[
             { id: 'SHIFT', label: 'Shift Engine', icon: Clock },
             { id: 'GAMIFICATION', label: 'Game Rules', icon: Zap },
@@ -304,34 +304,34 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ isOpen, onClose,
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`pb-3 px-3 text-xs font-black flex items-center gap-1.5 border-b-4 transition-all whitespace-nowrap ${
+                className={`pb-2 sm:pb-3 px-2.5 sm:px-3 text-[11px] sm:text-xs font-black flex items-center gap-1 sm:gap-1.5 border-b-4 transition-all whitespace-nowrap shrink-0 ${
                   isSelected
                     ? 'border-[#1CB0F6] text-[#1CB0F6]'
                     : 'border-transparent text-gray-400 hover:text-gray-600'
                 }`}
               >
-                <Icon size={16} className="stroke-[2.5]" />
-                {tab.label}
+                <Icon size={14} className="stroke-[2.5] sm:w-4 sm:h-4" />
+                <span>{tab.label}</span>
               </button>
             );
           })}
         </div>
 
         {/* Tab Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6">
 
           {/* TAB 1: SHIFT ENGINE */}
           {activeTab === 'SHIFT' && (
-            <div className="space-y-5">
-              <div className="bg-white p-5 rounded-2xl border-2 border-[#E5E5E5] border-b-4">
-                <h3 className="font-extrabold text-[#3C3C3C] text-base mb-1 flex items-center gap-2">
-                  <Clock size={18} className="text-[#1CB0F6]" /> Active Shift Profile
+            <div className="space-y-4 sm:space-y-5">
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-[#E5E5E5] border-b-4">
+                <h3 className="font-extrabold text-[#3C3C3C] text-sm sm:text-base mb-1 flex items-center gap-2">
+                  <Clock size={16} className="text-[#1CB0F6]" /> Active Shift Profile
                 </h3>
-                <p className="text-xs text-gray-500 mb-4">
+                <p className="text-[11px] sm:text-xs text-gray-500 mb-3 sm:mb-4">
                   Dynamically auto-allocates your 5-Hour Morning Pre-Shift deep work window & low-cortisol evening wind-down.
                 </p>
 
-                <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 mb-4">
                   <button
                     onClick={() => {
                       setSelectedProfileId('sp_uk_shift');
@@ -347,8 +347,8 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ isOpen, onClose,
                         : 'bg-gray-50 border-gray-200 text-gray-600'
                     }`}
                   >
-                    <div className="text-sm font-extrabold">UK Shift (Default)</div>
-                    <div className="text-[11px] opacity-75">12:00 PM – 09:00 PM</div>
+                    <div className="text-xs sm:text-sm font-extrabold">UK Shift (Default)</div>
+                    <div className="text-[10px] sm:text-[11px] opacity-75">12:00 PM – 09:00 PM</div>
                   </button>
 
                   <button
@@ -366,51 +366,51 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ isOpen, onClose,
                         : 'bg-gray-50 border-gray-200 text-gray-600'
                     }`}
                   >
-                    <div className="text-sm font-extrabold">Standard Morning Shift</div>
-                    <div className="text-[11px] opacity-75">09:00 AM – 06:00 PM</div>
+                    <div className="text-xs sm:text-sm font-extrabold">Standard Morning Shift</div>
+                    <div className="text-[10px] sm:text-[11px] opacity-75">09:00 AM – 06:00 PM</div>
                   </button>
                 </div>
 
                 {/* Detailed time inputs */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1">Work Shift Start</label>
+                    <label className="block text-[10px] sm:text-xs font-bold text-gray-500 mb-1">Work Shift Start</label>
                     <input
                       type="time"
                       value={workStartTime}
                       onChange={e => setWorkStartTime(e.target.value)}
-                      className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2 text-sm font-black text-[#3C3C3C] focus:outline-none focus:border-[#1CB0F6]"
+                      className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-black text-[#3C3C3C] focus:outline-none focus:border-[#1CB0F6]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1">Work Shift End</label>
+                    <label className="block text-[10px] sm:text-xs font-bold text-gray-500 mb-1">Work Shift End</label>
                     <input
                       type="time"
                       value={workEndTime}
                       onChange={e => setWorkEndTime(e.target.value)}
-                      className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2 text-sm font-black text-[#3C3C3C] focus:outline-none focus:border-[#1CB0F6]"
+                      className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-black text-[#3C3C3C] focus:outline-none focus:border-[#1CB0F6]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1">Wake-Up Time</label>
+                    <label className="block text-[10px] sm:text-xs font-bold text-gray-500 mb-1">Wake-Up Time</label>
                     <input
                       type="time"
                       value={wakeUpTime}
                       onChange={e => setWakeUpTime(e.target.value)}
-                      className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2 text-sm font-black text-[#3C3C3C] focus:outline-none focus:border-[#1CB0F6]"
+                      className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-black text-[#3C3C3C] focus:outline-none focus:border-[#1CB0F6]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1">Sleep Target Time</label>
+                    <label className="block text-[10px] sm:text-xs font-bold text-gray-500 mb-1">Sleep Target Time</label>
                     <input
                       type="time"
                       value={sleepStartTime}
                       onChange={e => setSleepStartTime(e.target.value)}
-                      className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2 text-sm font-black text-[#3C3C3C] focus:outline-none focus:border-[#1CB0F6]"
+                      className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-black text-[#3C3C3C] focus:outline-none focus:border-[#1CB0F6]"
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs font-bold text-gray-500 mb-1">
+                    <label className="block text-[10px] sm:text-xs font-bold text-gray-500 mb-1">
                       Commute & Transition Buffer (Minutes)
                     </label>
                     <input
@@ -419,15 +419,15 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ isOpen, onClose,
                       max={180}
                       value={commuteBuffer}
                       onChange={e => setCommuteBuffer(Number(e.target.value))}
-                      className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2 text-sm font-black text-[#3C3C3C] focus:outline-none focus:border-[#1CB0F6]"
+                      className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-black text-[#3C3C3C] focus:outline-none focus:border-[#1CB0F6]"
                     />
                   </div>
                 </div>
 
                 {/* Week-Off Days */}
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <label className="block text-xs font-bold text-gray-500 mb-2">Week-Off Flexible Creative Days</label>
-                  <div className="flex gap-2">
+                <div className="mt-4 pt-3 sm:pt-4 border-t border-gray-100">
+                  <label className="block text-[11px] sm:text-xs font-bold text-gray-500 mb-2">Week-Off Flexible Creative Days</label>
+                  <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-1 no-scrollbar">
                     {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map(day => {
                       const isOff = weekOffDays.includes(day);
                       return (
@@ -438,7 +438,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ isOpen, onClose,
                               prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
                             );
                           }}
-                          className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all border-2 ${
+                          className={`flex-1 min-w-[38px] py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-black transition-all border-2 text-center ${
                             isOff
                               ? 'bg-[#58CC02] border-[#46A302] border-b-2 text-white'
                               : 'bg-gray-100 border-gray-200 text-gray-500'
@@ -451,13 +451,13 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ isOpen, onClose,
                   </div>
                 </div>
 
-                <div className="mt-5">
+                <div className="mt-4 sm:mt-5">
                   <button
                     onClick={handleSaveShift}
-                    className="w-full py-3 rounded-xl bg-[#1CB0F6] border-2 border-[#1899D6] border-b-4 text-white font-extrabold text-sm active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 shadow-md hover:bg-[#159bd8]"
+                    className="w-full py-2.5 sm:py-3 rounded-xl bg-[#1CB0F6] border-2 border-[#1899D6] border-b-4 text-white font-extrabold text-xs sm:text-sm active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 shadow-md hover:bg-[#159bd8]"
                   >
-                    <RefreshCw size={16} className="stroke-[3]" />
-                    Recalculate & Sync Dynamic Shift Schedule
+                    <RefreshCw size={15} className="stroke-[3]" />
+                    <span>Recalculate & Sync Dynamic Shift</span>
                   </button>
                 </div>
               </div>
@@ -825,3 +825,4 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ isOpen, onClose,
     </div>
   );
 };
+

@@ -126,11 +126,11 @@ export const LootVaultTab: React.FC = () => {
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-16">
       {/* Header Banner */}
-      <div className="bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-6 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-6 p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl">🎁</span>
-            <h2 className="font-black text-2xl text-[#3C3C3C]">
+            <span className="text-xl sm:text-2xl">🎁</span>
+            <h2 className="font-black text-lg sm:text-2xl text-[#3C3C3C]">
               The 4-Tier Loot Vault & Ceremony
             </h2>
           </div>
@@ -140,32 +140,32 @@ export const LootVaultTab: React.FC = () => {
         </div>
 
         {/* Top Action Buttons */}
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
           <ChunkyButton
             variant="blue"
-            size="md"
+            size="sm"
             onClick={() => setActiveStudioModal('sundayLinks')}
           >
-            <span>⚡ Sunday Link Prep Wizard</span>
+            <span>⚡ Sunday Prep Wizard</span>
           </ChunkyButton>
 
           <ChunkyButton
             variant="purple"
-            size="md"
+            size="sm"
             onClick={() => {
               sound.playTap();
               setIsCeremonyWizardOpen(true);
               setWizardStep(1);
             }}
           >
-            <Sparkles size={18} />
+            <Sparkles size={16} />
             <span>Month-End Ceremony</span>
           </ChunkyButton>
         </div>
       </div>
 
       {/* 1. 4 Interactive 3D Treasure Chests */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {CHEST_TIERS.map(tier => {
           const count = pendingChests[tier.rarity];
           const hasPending = count > 0;

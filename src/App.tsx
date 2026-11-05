@@ -37,7 +37,7 @@ const AppContent: React.FC = () => {
         <Navigation />
 
         {/* Dynamic Tab Content */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 min-w-0 pb-24 md:pb-12">
+        <main className="flex-1 p-3 sm:p-6 md:p-8 min-w-0 pb-32 md:pb-12">
           {activeTab === 'today' && <TodayAndHabitsTab />}
           {activeTab === 'skillTree' && <SkillTreeTab />}
           {activeTab === 'quests' && <QuestsTab />}
@@ -47,12 +47,12 @@ const AppContent: React.FC = () => {
       </div>
 
       {/* Persistent Floating Quick-Loot Action Button */}
-      <div className="fixed bottom-20 md:bottom-6 right-6 z-40">
+      <div className="fixed bottom-[72px] md:bottom-6 right-3 sm:right-6 z-40">
         <button
           onClick={() => setActiveStudioModal('quickLoot')}
-          className="flex items-center gap-2 px-4 py-3 rounded-full bg-[#FFC800] border-2 border-b-4 border-[#E5A400] text-[#3C3C3C] font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg hover:scale-105 active:translate-y-1 transition-all cursor-pointer"
+          className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full bg-[#FFC800] border-2 border-b-4 border-[#E5A400] text-[#3C3C3C] font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg hover:scale-105 active:translate-y-1 transition-all cursor-pointer"
         >
-          <ShoppingBag size={18} />
+          <ShoppingBag size={17} className="sm:w-[18px] sm:h-[18px]" />
           <span>🎒 Quick-Loot</span>
         </button>
       </div>

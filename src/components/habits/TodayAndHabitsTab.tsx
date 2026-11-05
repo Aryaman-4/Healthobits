@@ -151,10 +151,10 @@ export const TodayAndHabitsTab: React.FC = () => {
             <span>Polymath Schedule Engine:</span>
           </div>
 
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 sm:flex-wrap no-scrollbar">
             <button
               onClick={() => setScheduleFilter('today')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 scheduleFilter === 'today'
                   ? 'bg-[#3C3C3C] text-white shadow-xs'
                   : 'bg-[#F7F7F7] text-[#777777] hover:bg-gray-200'
@@ -165,7 +165,7 @@ export const TodayAndHabitsTab: React.FC = () => {
 
             <button
               onClick={() => setScheduleFilter('mwf')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 scheduleFilter === 'mwf'
                   ? 'bg-[#1CB0F6] text-white shadow-xs'
                   : 'bg-[#F7F7F7] text-[#777777] hover:bg-gray-200'
@@ -176,7 +176,7 @@ export const TodayAndHabitsTab: React.FC = () => {
 
             <button
               onClick={() => setScheduleFilter('tts')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 scheduleFilter === 'tts'
                   ? 'bg-[#FFC800] text-[#3C3C3C] shadow-xs'
                   : 'bg-[#F7F7F7] text-[#777777] hover:bg-gray-200'
@@ -187,7 +187,7 @@ export const TodayAndHabitsTab: React.FC = () => {
 
             <button
               onClick={() => setScheduleFilter('sunday')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 scheduleFilter === 'sunday'
                   ? 'bg-[#CE82FF] text-white shadow-xs'
                   : 'bg-[#F7F7F7] text-[#777777] hover:bg-gray-200'
@@ -201,56 +201,65 @@ export const TodayAndHabitsTab: React.FC = () => {
         {/* Survival Mode Toggle Button */}
         <button
           onClick={() => setKeystoneModeOnly(!keystoneModeOnly)}
-          className={`px-4 py-2.5 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider cursor-pointer border-2 border-b-4 transition-all active:translate-y-0.5 whitespace-nowrap self-start md:self-auto flex items-center gap-2 ${
+          className={`w-full sm:w-auto px-4 py-2.5 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider cursor-pointer border-2 border-b-4 transition-all active:translate-y-0.5 whitespace-nowrap self-start md:self-auto flex items-center justify-center gap-2 ${
             keystoneModeOnly
               ? 'bg-[#FF4B4B] border-[#EA2B2B] text-white shadow-md animate-pulse'
               : 'bg-[#FFF9E6] border-[#FFC800] text-[#A17200] hover:bg-[#ffeec2]'
           }`}
         >
           <Flame size={16} className={keystoneModeOnly ? 'fill-white' : 'fill-[#FFC800]'} />
-          <span>{keystoneModeOnly ? '🔥 SURVIVAL MODE: ON (5 Keystones)' : '🔥 Survival Mode Toggle'}</span>
+          <span>{keystoneModeOnly ? '🔥 SURVIVAL: ON (5 Keystones)' : '🔥 Survival Mode Toggle'}</span>
         </button>
       </div>
 
       {/* Date Navigator Bar & 1-Point Branch Status */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-3xl border-2 border-[#E5E5E5] border-b-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-3xl border-2 border-[#E5E5E5] border-b-4">
         {/* Date Selector */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleStepDay(-1)}
-            className="w-9 h-9 rounded-xl border-2 border-[#E5E5E5] border-b-4 flex items-center justify-center hover:bg-gray-50 active:translate-y-0.5 cursor-pointer text-[#777777]"
-          >
-            <ChevronLeft size={18} />
-          </button>
+        <div className="flex items-center justify-between sm:justify-start gap-2">
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => handleStepDay(-1)}
+              className="w-9 h-9 rounded-xl border-2 border-[#E5E5E5] border-b-4 flex items-center justify-center hover:bg-gray-50 active:translate-y-0.5 cursor-pointer text-[#777777]"
+            >
+              <ChevronLeft size={18} />
+            </button>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F7F7F7] rounded-xl border-2 border-[#E5E5E5]">
-            <Calendar size={18} className="text-[#1CB0F6]" />
-            <span className="font-extrabold text-sm sm:text-base text-[#3C3C3C]">
-              {selectedDateObj.toLocaleDateString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-              })}
-            </span>
-            {isToday && (
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#58CC02] text-white">
-                Today
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 bg-[#F7F7F7] rounded-xl border-2 border-[#E5E5E5]">
+              <Calendar size={16} className="text-[#1CB0F6] shrink-0" />
+              <span className="font-extrabold text-xs sm:text-base text-[#3C3C3C] whitespace-nowrap">
+                {selectedDateObj.toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric'
+                })}
               </span>
-            )}
+              {isToday && (
+                <span className="text-[9px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-md bg-[#58CC02] text-white shrink-0">
+                  Today
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={() => handleStepDay(1)}
+              className="w-9 h-9 rounded-xl border-2 border-[#E5E5E5] border-b-4 flex items-center justify-center hover:bg-gray-50 active:translate-y-0.5 cursor-pointer text-[#777777]"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
 
-          <button
-            onClick={() => handleStepDay(1)}
-            className="w-9 h-9 rounded-xl border-2 border-[#E5E5E5] border-b-4 flex items-center justify-center hover:bg-gray-50 active:translate-y-0.5 cursor-pointer text-[#777777]"
-          >
-            <ChevronRight size={18} />
-          </button>
+          {/* Mobile-only New Habit Button */}
+          <div className="sm:hidden">
+            <ChunkyButton variant="green" size="sm" onClick={() => setIsAddModalOpen(true)}>
+              <Plus size={15} />
+              <span>New</span>
+            </ChunkyButton>
+          </div>
         </div>
 
         {/* 1-Point Branch Active Day Status */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs font-bold text-[#777777] mr-1 hidden sm:inline">Active Branches:</span>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 sm:flex-wrap no-scrollbar">
+          <span className="text-xs font-bold text-[#777777] mr-1 hidden sm:inline shrink-0">Active:</span>
           {(['body', 'mind', 'craft', 'bonds', 'empire'] as BranchId[]).map(bId => {
             const branch = branches[bId];
             const isActiveToday = isBranchActiveOnDate(bId, habits, selectedDate);
@@ -258,7 +267,7 @@ export const TodayAndHabitsTab: React.FC = () => {
             return (
               <div
                 key={bId}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black border transition-all ${
+                className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-xl text-[11px] sm:text-xs font-black border transition-all shrink-0 ${
                   isActiveToday
                     ? 'text-white border-transparent shadow-xs'
                     : 'text-gray-400 border-gray-200 bg-gray-50 opacity-60'
@@ -266,19 +275,21 @@ export const TodayAndHabitsTab: React.FC = () => {
                 style={{ backgroundColor: isActiveToday ? branch.colorHex : undefined }}
                 title={`${branch.name}: ${isActiveToday ? '+1 Active Day Earned!' : 'No habits completed yet'}`}
               >
-                <BranchIcon branchId={bId} size={13} />
+                <BranchIcon branchId={bId} size={12} />
                 <span className="capitalize">{branch.name}</span>
-                {isActiveToday && <Check size={12} strokeWidth={3} />}
+                {isActiveToday && <Check size={11} strokeWidth={3} />}
               </div>
             );
           })}
         </div>
 
-        {/* New Habit Button */}
-        <ChunkyButton variant="green" size="sm" onClick={() => setIsAddModalOpen(true)}>
-          <Plus size={16} />
-          <span>New Habit</span>
-        </ChunkyButton>
+        {/* Desktop New Habit Button */}
+        <div className="hidden sm:block">
+          <ChunkyButton variant="green" size="sm" onClick={() => setIsAddModalOpen(true)}>
+            <Plus size={16} />
+            <span>New Habit</span>
+          </ChunkyButton>
+        </div>
       </div>
 
       {/* 2. Today's Quest Board Cards with 5-Second Zero-Friction Launch Buttons */}
@@ -383,28 +394,28 @@ export const TodayAndHabitsTab: React.FC = () => {
                 ) : null}
 
                 {/* CRITICAL FEATURE: Two Side-by-Side 5-Second Zero-Friction Launch Buttons */}
-                <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+                <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-1.5 sm:gap-2">
                   {/* Left: [🚀 LAUNCH NOW] Button with inline Edit pencil */}
-                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <div className="flex items-center gap-1 sm:gap-1.5 flex-1 min-w-0">
                     <button
                       onClick={() => handleLaunchHabit(habit)}
-                      className="flex-1 py-2.5 px-3 rounded-2xl bg-[#DDF4FF] border-2 border-[#84D8FF] border-b-4 text-[#1CB0F6] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 hover:bg-[#caedff] active:translate-y-1 transition-all cursor-pointer truncate"
+                      className="flex-1 py-2 sm:py-2.5 px-2 sm:px-3 rounded-2xl bg-[#DDF4FF] border-2 border-[#84D8FF] border-b-4 text-[#1CB0F6] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 hover:bg-[#caedff] active:translate-y-1 transition-all cursor-pointer truncate"
                       title="Open pinned deep link or interactive studio timer"
                     >
-                      <Rocket size={15} className="shrink-0" />
+                      <Rocket size={14} className="shrink-0 sm:w-[15px] sm:h-[15px]" />
                       <span className="truncate">
                         {habit.launchAction === 'workout'
-                          ? 'Launch 60m Workout'
+                          ? '60m Workout'
                           : habit.launchAction === 'music'
-                          ? 'Open Music Vault'
+                          ? 'Music Vault'
                           : habit.launchAction === 'reading'
-                          ? 'Open Book Tracker'
+                          ? 'Book Tracker'
                           : habit.launchAction === 'art'
-                          ? 'Open Art Studio'
+                          ? 'Art Studio'
                           : habit.launchAction === 'career'
-                          ? 'Open Cloud/AI Lab'
+                          ? 'Cloud/AI Lab'
                           : habit.launchAction === 'english'
-                          ? 'Open AI Coach'
+                          ? 'AI Coach'
                           : 'Launch Link'}
                       </span>
                     </button>
@@ -414,23 +425,23 @@ export const TodayAndHabitsTab: React.FC = () => {
                         setEditingUrlHabitId(habit.id);
                         setCustomUrlInput(habit.launchUrl || '');
                       }}
-                      className="p-2 rounded-xl border border-gray-200 text-gray-400 hover:text-[#1CB0F6] hover:bg-gray-50 transition-colors cursor-pointer shrink-0"
+                      className="p-1.5 sm:p-2 rounded-xl border border-gray-200 text-gray-400 hover:text-[#1CB0F6] hover:bg-gray-50 transition-colors cursor-pointer shrink-0"
                       title="Edit Pinned Deep Link URL"
                     >
-                      <Edit2 size={13} />
+                      <Edit2 size={12} className="sm:w-[13px] sm:h-[13px]" />
                     </button>
                   </div>
 
                   {/* Right: [✓ COMPLETE] Button */}
                   <button
                     onClick={() => toggleHabitCompletion(habit.id, selectedDate)}
-                    className={`py-2.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border-2 border-b-4 transition-all cursor-pointer select-none active:translate-y-1 shrink-0 ${
+                    className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-2xl font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 border-2 border-b-4 transition-all cursor-pointer select-none active:translate-y-1 shrink-0 ${
                       isCompleted
                         ? 'bg-[#58CC02] border-[#46A302] text-white shadow-xs'
                         : 'bg-[#F7F7F7] border-[#E5E5E5] text-[#777777] hover:bg-gray-100 hover:text-[#3C3C3C]'
                     }`}
                   >
-                    <Check size={16} strokeWidth={3} className={isCompleted ? 'text-white' : 'text-gray-400'} />
+                    <Check size={14} strokeWidth={3} className={`sm:w-4 sm:h-4 ${isCompleted ? 'text-white' : 'text-gray-400'}`} />
                     <span>{isCompleted ? 'Done ✓' : 'Complete'}</span>
                   </button>
                 </div>
@@ -441,50 +452,56 @@ export const TodayAndHabitsTab: React.FC = () => {
       </div>
 
       {/* 3. Half-Month Split Calendar Grid (Spread 1: Days 1–15 | Spread 2: Days 16–31) */}
-      <div className="bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-6 p-5 sm:p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-gray-100 pb-4">
+      <div className="bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-6 p-4 sm:p-6 space-y-3 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-gray-100 pb-3 sm:pb-4">
           <div>
-            <h3 className="font-black text-lg text-[#3C3C3C] flex items-center gap-2">
+            <h3 className="font-black text-base sm:text-lg text-[#3C3C3C] flex items-center gap-2">
               <span>Monthly Habit Spread</span>
-              <span className="text-xs font-black uppercase text-[#1CB0F6] bg-[#DDF4FF] px-2.5 py-0.5 rounded-full border border-[#84D8FF]">
+              <span className="text-[10px] sm:text-xs font-black uppercase text-[#1CB0F6] bg-[#DDF4FF] px-2 sm:px-2.5 py-0.5 rounded-full border border-[#84D8FF]">
                 {currentYearMonth}
               </span>
             </h3>
-            <p className="text-xs text-[#777777] font-semibold mt-0.5">
+            <p className="text-[11px] sm:text-xs text-[#777777] font-semibold mt-0.5">
               Split into 15-day views so the grid never cramps on desktop or mobile.
             </p>
           </div>
 
-          <div className="flex items-center gap-1 p-1 bg-[#F7F7F7] rounded-2xl border-2 border-[#E5E5E5] self-start sm:self-auto">
+          <div className="flex items-center gap-1 p-1 bg-[#F7F7F7] rounded-2xl border-2 border-[#E5E5E5] self-start sm:self-auto overflow-x-auto w-full sm:w-auto">
             <button
               onClick={() => setActiveSpread('first')}
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-all ${
+              className={`flex-1 sm:flex-initial px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider cursor-pointer transition-all whitespace-nowrap text-center ${
                 activeSpread === 'first'
                   ? 'bg-white border-2 border-b-4 border-[#1CB0F6] text-[#1CB0F6] shadow-xs'
                   : 'text-[#777777] hover:text-[#3C3C3C]'
               }`}
             >
-              Spread 1 (Days 1–15)
+              Spread 1 (1–15)
             </button>
             <button
               onClick={() => setActiveSpread('second')}
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-all ${
+              className={`flex-1 sm:flex-initial px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider cursor-pointer transition-all whitespace-nowrap text-center ${
                 activeSpread === 'second'
                   ? 'bg-white border-2 border-b-4 border-[#1CB0F6] text-[#1CB0F6] shadow-xs'
                   : 'text-[#777777] hover:text-[#3C3C3C]'
               }`}
             >
-              Spread 2 (Days 16–{totalDays})
+              Spread 2 (16–{totalDays})
             </button>
           </div>
         </div>
 
+        {/* Mobile Swipe Hint */}
+        <div className="sm:hidden flex items-center justify-between text-[10px] font-bold text-gray-400 px-1">
+          <span>👈 Swipe table horizontally</span>
+          <span>Habit pinned on left 📌</span>
+        </div>
+
         {/* Table */}
-        <div className="overflow-x-auto pb-2">
-          <table className="w-full text-left border-collapse min-w-[700px]">
+        <div className="overflow-x-auto pb-2 rounded-2xl border border-gray-100 sm:border-0">
+          <table className="w-full text-left border-collapse min-w-[620px]">
             <thead>
               <tr className="border-b-2 border-gray-100 text-xs font-black text-[#777777]">
-                <th className="py-2.5 px-3 min-w-[200px]">Habit & Branch</th>
+                <th className="py-2.5 px-3 min-w-[150px] sm:min-w-[200px] sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">Habit & Branch</th>
                 {spreadDays.map(dayNum => {
                   const dayDateStr = `${currentYearMonth}-${String(dayNum).padStart(2, '0')}`;
                   const isCurrent = dayDateStr === selectedDate;
@@ -514,7 +531,7 @@ export const TodayAndHabitsTab: React.FC = () => {
 
                 return (
                   <tr key={habit.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-2.5 px-3">
+                    <td className="py-2.5 px-3 sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                       <div className="flex items-center gap-2">
                         <span
                           className="w-3 h-3 rounded-full shrink-0"
