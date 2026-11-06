@@ -32,6 +32,7 @@ export interface KVNamespace {
 export interface ServerEnv {
   DB?: D1Database;
   KV?: KVNamespace;
+  ASSETS?: { fetch: (request: Request) => Promise<Response> };
   MASTER_ENCRYPTION_KEY?: string;
   GEMINI_API_KEY?: string;
 }

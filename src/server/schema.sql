@@ -2,9 +2,11 @@
 -- POLYMATH QUEST: CLOUDFLARE D1 (EDGE SQLITE) RELATIONAL SCHEMA
 -- ==============================================================================
 
--- 1. USERS & CUSTOMIZABLE GAMIFICATION ENGINE CONFIG
+-- 1. USERS & CUSTOMIZABLE GAMIFICATION ENGINE CONFIG (AUTHENTICATION & D1 PERSISTENCE)
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
   character_name TEXT NOT NULL DEFAULT 'Aryan',
   character_class TEXT NOT NULL DEFAULT 'Cloud-Native Polymath',
   avatar_config_json TEXT NOT NULL DEFAULT '{"avatarSeed":"wizard","avatarBg":"#58CC02"}',
@@ -18,6 +20,8 @@ CREATE TABLE IF NOT EXISTS users (
     "requireKeystoneStarPerBranch": true
   }',
   encryption_salt TEXT NOT NULL,
+  session_token TEXT,
+  state_payload_json TEXT, -- Full synced RPG state payload for rapid hydration
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
 );

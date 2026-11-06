@@ -128,5 +128,107 @@ export class CryptoService {
       return null;
     }
   }
+
+  /**
+   * Generate a random cryptographic salt (hex)
+   */
+  public static generateSalt(): string {
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /**
+   * Hash a user password using PBKDF2 with SHA-256 (100,000 iterations)
+   */
+  public static async hashPassword(password: string, salt: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(password),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits']
+    );
+
+    const derivedBits = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt: encoder.encode(salt),
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      keyMaterial,
+      256
+    );
+
+    const hashArray = Array.from(new Uint8Array(derivedBits));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /**
+   * Verify password against stored PBKDF2 hash
+   */
+  public static async verifyPassword(password: string, storedHash: string, salt: string): Promise<boolean> {
+    const computedHash = await this.hashPassword(password, salt);
+    return computedHash === storedHash;
+  }
+
+  /**
+   * Create a signed session token
+   */
+  public static async createSessionToken(userId: string, email: string): Promise<string> {
+    const payload = {
+      uid: userId,
+      em: email,
+      exp: Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days
+    };
+    const payloadStr = JSON.stringify(payload);
+    const payloadB64 = btoa(payloadStr);
+
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(this.DEFAULT_MASTER_KEY),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    const signatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(payloadB64));
+    const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)));
+
+    return `${payloadB64}.${signatureB64}`;
+  }
+
+  /**
+   * Verify signed session token
+   */
+  public static async verifySessionToken(token: string): Promise<{ userId: string; email: string } | null> {
+    try {
+      if (!token || !token.includes('.')) return null;
+      const [payloadB64, signatureB64] = token.split('.');
+      const encoder = new TextEncoder();
+
+      const key = await crypto.subtle.importKey(
+        'raw',
+        encoder.encode(this.DEFAULT_MASTER_KEY),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['verify']
+      );
+
+      const signatureBytes = Uint8Array.from(atob(signatureB64), c => c.charCodeAt(0));
+      const isValid = await crypto.subtle.verify('HMAC', key, signatureBytes, encoder.encode(payloadB64));
+      if (!isValid) return null;
+
+      const payload = JSON.parse(atob(payloadB64));
+      if (payload.exp && Date.now() > payload.exp) return null;
+
+      return { userId: payload.uid, email: payload.em };
+    } catch {
+      return null;
+    }
+  }
 }
+
 

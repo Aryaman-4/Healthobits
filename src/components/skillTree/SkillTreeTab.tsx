@@ -4,311 +4,233 @@ import {
   Check,
   Lock,
   Sparkles,
-  Info,
-  Calendar,
-  Gift
+  Gift,
+  Edit3,
+  ChevronRight,
+  Award,
+  Star
 } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
-import { BranchId, NodeThreshold } from '../../types';
+import { BranchId, BranchMilestoneNode } from '../../types';
 import { BranchIcon } from '../common/BranchIcon';
-import { PactSignaturePad } from './PactSignaturePad';
+import { GameGuideCard } from '../guide/GameGuideCard';
+import { CustomizeLevelsModal } from './CustomizeLevelsModal';
+import { DEFAULT_BRANCH_MILESTONES } from '../../data/seedData';
 import { NODE_THRESHOLDS, getBranchNodeProgress } from '../../utils/gameMath';
+import { sound } from '../../utils/audio';
 
 export const SkillTreeTab: React.FC = () => {
   const { state, setActiveTab } = useGame();
-  const { branches, habits, character, monthlySummaries } = state;
+  const { branches, habits, character } = state;
 
-  // Selected branch for mobile / focused view
   const [selectedBranchId, setSelectedBranchId] = useState<BranchId>('body');
+  const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
+  const [selectedMilestoneDetail, setSelectedMilestoneDetail] = useState<{ node: BranchMilestoneNode; branch: any; isUnlocked: boolean } | null>(null);
 
   const branchIds: BranchId[] = ['body', 'mind', 'craft', 'bonds', 'empire'];
+  const activeBranch = branches[selectedBranchId];
+  const progress = getBranchNodeProgress(activeBranch, habits, character.currentYearMonth);
+  const milestoneNodes = activeBranch.milestoneNodes || DEFAULT_BRANCH_MILESTONES[selectedBranchId];
+
+  const handleOpenCustomize = (bId?: BranchId) => {
+    sound.playTap();
+    if (bId) setSelectedBranchId(bId);
+    setIsCustomizeModalOpen(true);
+  };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto pb-16">
-      {/* Header Info Banner */}
-      <div className="bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-4 p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="max-w-md mx-auto sm:max-w-4xl py-4 sm:py-6 px-3 sm:px-4 space-y-6 pb-20">
+      {/* 1. Dismissible Beginner Game Guide Card */}
+      <GameGuideCard />
+
+      {/* 2. Top Banner */}
+      <div className="bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-6 p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-2xl">🗺️</span>
-            <h2 className="font-black text-xl sm:text-2xl text-[#3C3C3C]">
-              The 80-Point Seasonal Skill Tree
+            <h2 className="font-black text-lg sm:text-2xl text-[#3C3C3C]">
+              The 80-Day Seasonal Skill Tree
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-[#777777] font-semibold max-w-2xl">
-            Each branch advances by earning active branch days (capped at +1/day). Non-consecutive: unlock milestones at <strong>5, 15, 30, 50, and 80 days</strong> across the 90-day season. Each unlocked node grants a <strong>💎 Rare Loot Chest</strong>!
+            Each branch advances by active habit days (capped at +1/day). Non-consecutive milestones at <strong>5, 15, 30, 50, and 80 days</strong>.
           </p>
         </div>
 
-        {/* Quick jump to loot vault */}
+        {/* Quick Jump to Loot Vault */}
         <button
-          onClick={() => setActiveTab('vault')}
-          className="self-start md:self-auto px-4 py-2.5 rounded-2xl bg-[#DDF4FF] border-2 border-[#84D8FF] border-b-4 text-[#1CB0F6] font-black text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-[#cdeeff] active:translate-y-0.5 cursor-pointer"
+          onClick={() => {
+            sound.playTap();
+            setActiveTab('vault');
+          }}
+          className="self-start sm:self-auto px-4 py-2.5 rounded-2xl bg-[#DDF4FF] border-2 border-[#84D8FF] border-b-4 text-[#1CB0F6] font-black text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-[#cdeeff] active:translate-y-0.5 cursor-pointer shadow-xs"
         >
           <Gift size={16} />
           <span>Open Loot Vault</span>
         </button>
       </div>
 
-      {/* Mobile Branch Switcher Tabs */}
-      <div className="flex md:hidden items-center gap-1.5 overflow-x-auto pb-1">
+      {/* 3. Branch Switcher Tabs (Spacious Mobile-First Navigation) */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
         {branchIds.map(bId => {
           const branch = branches[bId];
           const isSelected = selectedBranchId === bId;
+          const bProg = getBranchNodeProgress(branch, habits, character.currentYearMonth);
+
           return (
             <button
               key={bId}
-              onClick={() => setSelectedBranchId(bId)}
-              className={`px-3 py-2 rounded-2xl font-black text-xs uppercase tracking-wider shrink-0 border-2 transition-all cursor-pointer ${
+              onClick={() => {
+                sound.playTap();
+                setSelectedBranchId(bId);
+              }}
+              className={`px-4 py-2.5 rounded-2xl font-black text-xs uppercase tracking-wider shrink-0 border-2 transition-all cursor-pointer flex items-center gap-2 ${
                 isSelected
-                  ? 'text-white border-transparent border-b-4 shadow-sm'
-                  : 'bg-white text-[#777777] border-gray-200'
+                  ? 'text-white border-transparent border-b-4 shadow-md'
+                  : 'bg-white text-[#777777] border-gray-200 hover:bg-gray-100'
               }`}
               style={{
                 backgroundColor: isSelected ? branch.colorHex : undefined,
                 borderColor: isSelected ? branch.borderHex : undefined
               }}
             >
-              <div className="flex items-center gap-1.5">
-                <BranchIcon branchId={bId} size={14} />
-                <span>{branch.name}</span>
-              </div>
+              <BranchIcon branchId={bId} size={15} />
+              <span>{branch.name}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${isSelected ? 'bg-white/25 text-white' : 'bg-gray-100 text-[#777777]'}`}>
+                {bProg.cumulativeDays}d
+              </span>
             </button>
           );
         })}
       </div>
 
-      {/* The 5 Stepping-Stone Paths (Desktop: 5 Columns side-by-side, Mobile: Active selected column) */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {branchIds.map(bId => {
-          const branch = branches[bId];
-          const isHiddenOnMobile = selectedBranchId !== bId;
-          const progress = getBranchNodeProgress(branch, habits, character.currentYearMonth);
-
-          return (
-            <div
-              key={bId}
-              className={`flex-col items-center bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-4 p-4 ${
-                isHiddenOnMobile ? 'hidden md:flex' : 'flex'
-              }`}
-            >
-              {/* Top Branch Header Banner */}
-              <div
-                className="w-full rounded-2xl p-3 text-center text-white font-black shadow-sm mb-6 border-b-4"
-                style={{
-                  backgroundColor: branch.colorHex,
-                  borderColor: branch.borderHex
-                }}
-              >
-                <div className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-wider">
-                  <BranchIcon branchId={bId} size={15} />
-                  <span>{branch.name}</span>
-                </div>
-                <div className="text-2xl font-black mt-1 leading-tight">
-                  {progress.cumulativeDays}
-                  <span className="text-xs font-bold opacity-80 ml-1">/ 80d</span>
-                </div>
-                <div className="text-[10px] font-extrabold uppercase tracking-wide opacity-90 mt-0.5">
-                  Base Lvl: {branch.seasonStartLevel} • Mo. Days: {progress.currentMonthDays}
-                </div>
-              </div>
-
-              {/* The 5 Stepping Stones: 80 (top) down to 5 (bottom) OR 5 (bottom) up to 80 (top) */}
-              {/* Duolingo style: bottom is start (5), climbing upwards to 80 (pinnacle crown)! */}
-              <div className="flex flex-col-reverse items-center gap-6 relative w-full py-2">
-                {/* Winding Road / Connecting dashed background line */}
-                <div className="absolute top-8 bottom-8 w-2 bg-gradient-to-b from-gray-200 to-gray-200 rounded-full z-0" />
-
-                {NODE_THRESHOLDS.map((threshold, index) => {
-                  const isUnlocked = progress.unlockedThresholds.includes(threshold);
-                  const isTarget = progress.nextTargetThreshold === threshold;
-                  const isCrownNode = threshold === 80;
-
-                  // Winding lateral offset like Duolingo's path
-                  const lateralOffsets = ['translate-x-0', 'translate-x-3', '-translate-x-3', 'translate-x-2', 'translate-x-0'];
-                  const offsetClass = lateralOffsets[index % lateralOffsets.length];
-
-                  return (
-                    <div
-                      key={threshold}
-                      className={`relative z-10 flex flex-col items-center ${offsetClass}`}
-                    >
-                      {/* Floating Bouncing Tooltip on Target Node */}
-                      {isTarget && (
-                        <div className="absolute -top-12 z-20 whitespace-nowrap bg-[#3C3C3C] text-white px-3 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider shadow-lg animate-bounce-soft flex items-center gap-1">
-                          <Sparkles size={12} className="text-[#FFC800]" />
-                          <span>{progress.daysToNextNode} days to Rare Loot!</span>
-                          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#3C3C3C] transform rotate-45" />
-                        </div>
-                      )}
-
-                      {/* Stepping-Stone 3D Node Circle */}
-                      <div className="relative">
-                        {/* Circular Progress Ring around Active Target */}
-                        {isTarget && (
-                          <svg className="absolute -inset-2 w-24 h-24 transform -rotate-90 pointer-events-none">
-                            <circle
-                              cx="48"
-                              cy="48"
-                              r="42"
-                              stroke="#E5E5E5"
-                              strokeWidth="5"
-                              fill="none"
-                            />
-                            <circle
-                              cx="48"
-                              cy="48"
-                              r="42"
-                              stroke={branch.colorHex}
-                              strokeWidth="5"
-                              strokeDasharray="264"
-                              strokeDashoffset={264 - (264 * progress.progressPercentToNext) / 100}
-                              strokeLinecap="round"
-                              fill="none"
-                              className="transition-all duration-500"
-                            />
-                          </svg>
-                        )}
-
-                        <button
-                          className={`w-20 h-20 rounded-full flex flex-col items-center justify-center font-black transition-all cursor-pointer select-none active:translate-y-1 ${
-                            isUnlocked
-                              ? 'text-white border-4 border-b-8 shadow-md'
-                              : isTarget
-                              ? 'bg-white text-[#3C3C3C] border-4 border-b-8 shadow-sm'
-                              : 'bg-gray-100 text-gray-400 border-4 border-b-8 border-gray-300'
-                          }`}
-                          style={{
-                            backgroundColor: isUnlocked ? branch.colorHex : undefined,
-                            borderColor: isUnlocked
-                              ? branch.borderHex
-                              : isTarget
-                              ? branch.colorHex
-                              : undefined
-                          }}
-                          title={`Milestone ${threshold} Days`}
-                        >
-                          {isCrownNode ? (
-                            <Crown
-                              size={26}
-                              className={isUnlocked ? 'text-[#FFC800] fill-[#FFC800]' : 'text-gray-400'}
-                            />
-                          ) : isUnlocked ? (
-                            <Check size={26} strokeWidth={4} className="text-white" />
-                          ) : isTarget ? (
-                            <span className="text-2xl font-black">{threshold}</span>
-                          ) : (
-                            <Lock size={20} className="text-gray-400" />
-                          )}
-
-                          <span className={`text-[10px] font-black uppercase mt-0.5 leading-none ${
-                            isUnlocked ? 'text-white/90' : isTarget ? 'text-[#777777]' : 'text-gray-400'
-                          }`}>
-                            {threshold}d
-                          </span>
-                        </button>
-                      </div>
-
-                      {/* Small badge underneath node */}
-                      <div className="mt-1.5 text-center">
-                        {isUnlocked ? (
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#EBF9DC] text-[#347A01] border border-[#58CC02]">
-                            Unlocked ✓
-                          </span>
-                        ) : isTarget ? (
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#DDF4FF] text-[#1CB0F6] border border-[#84D8FF]">
-                            {progress.progressPercentToNext}% Done
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold text-gray-400">
-                            Locked
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Bottom Target summary */}
-              <div className="w-full mt-4 p-2.5 bg-[#F7F7F7] rounded-xl border border-gray-200 text-center">
-                <span className="text-[11px] font-extrabold text-[#777777]">
-                  {progress.nextTargetThreshold
-                    ? `Next: Node ${progress.nextTargetThreshold} (${progress.daysToNextNode}d left)`
-                    : '🎉 Branch Mastered (80d)!'}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* 3. The Seasonal Pact (Signature Card) */}
-      <PactSignaturePad />
-
-      {/* 4. Month-to-Month Mini Tracker (3-Column Summary Pill Box) */}
-      <div className="bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-4 p-5 sm:p-6 space-y-4">
-        <div className="flex items-center justify-between">
+      {/* 4. Active Branch Hero & Customize Button */}
+      <div
+        className="rounded-3xl border-2 border-b-6 p-4 sm:p-5 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        style={{
+          backgroundColor: activeBranch.colorHex,
+          borderColor: activeBranch.borderHex
+        }}
+      >
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-white/20 border-2 border-white/30 flex items-center justify-center text-white text-2xl shadow-xs shrink-0">
+            <BranchIcon branchId={selectedBranchId} size={24} />
+          </div>
           <div>
-            <h3 className="font-black text-lg text-[#3C3C3C] flex items-center gap-2">
-              <Calendar size={20} className="text-[#1CB0F6]" />
-              <span>Season {character.seasonNumber} Month-to-Month Progress</span>
-            </h3>
-            <p className="text-xs text-[#777777] font-semibold mt-0.5">
-              Summary of nodes unlocked and monthly feats completed across the 3-month season.
+            <div className="flex items-center gap-2">
+              <h3 className="font-black text-xl leading-none">
+                {activeBranch.name} Attribute Path
+              </h3>
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-white text-[#3C3C3C]">
+                Lvl {activeBranch.seasonStartLevel}
+              </span>
+            </div>
+            <p className="text-xs text-white/90 font-semibold mt-1">
+              {activeBranch.focusArea}
             </p>
           </div>
-          <span className="text-xs font-black uppercase px-3 py-1 rounded-full bg-[#DDF4FF] text-[#1CB0F6] border border-[#84D8FF]">
-            Month {character.currentMonthIndex} of 3 Active
+        </div>
+
+        {/* 100% Editable Customize Levels & Goals Button */}
+        <button
+          onClick={() => handleOpenCustomize(selectedBranchId)}
+          className="self-start sm:self-auto px-4 py-2.5 rounded-2xl bg-white text-[#3C3C3C] hover:bg-gray-100 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer active:translate-y-0.5 transition-all shadow-sm shrink-0 border-2 border-b-4 border-gray-300"
+        >
+          <Edit3 size={14} className="text-[#1CB0F6]" />
+          <span>[✏️ Customize Levels & Goals]</span>
+        </button>
+      </div>
+
+      {/* 5. Pre-Designed 5-Tier Level Stepping-Stone Path (Duolingo Style) */}
+      <div className="bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-6 p-4 sm:p-6 space-y-4 shadow-sm">
+        <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} className="text-[#FFC800]" />
+            <span className="text-xs font-black uppercase text-[#3C3C3C]">
+              Season 1 Milestones ({progress.cumulativeDays} / 80 Total Days)
+            </span>
+          </div>
+
+          <span className="text-xs font-extrabold text-[#777777]">
+            {progress.unlockedThresholds.length}/5 Ranks Achieved
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map(monthNum => {
-            const isCurrent = character.currentMonthIndex === monthNum;
-            const isPast = monthNum < character.currentMonthIndex;
-            const summary = monthlySummaries.find(s => s.monthIndex === monthNum);
+        {/* Vertical Stepping Stone Cards */}
+        <div className="space-y-3.5">
+          {milestoneNodes.map((node, index) => {
+            const threshold = node.threshold;
+            const isUnlocked = progress.unlockedThresholds.includes(threshold as any);
+            const isTarget = progress.nextTargetThreshold === threshold;
+            const isApex = index === 4 || threshold >= 80;
 
             return (
               <div
-                key={monthNum}
-                className={`p-4 rounded-2xl border-2 transition-all ${
-                  isCurrent
-                    ? 'bg-[#FFFDF0] border-2 border-b-4 border-[#FFC800] shadow-sm'
-                    : isPast
-                    ? 'bg-[#F7F7F7] border-[#E5E5E5]'
-                    : 'bg-gray-50 border-dashed border-gray-200 opacity-60'
+                key={threshold}
+                onClick={() => {
+                  sound.playTap();
+                  setSelectedMilestoneDetail({ node, branch: activeBranch, isUnlocked });
+                }}
+                className={`rounded-2xl border-2 p-4 transition-all cursor-pointer relative shadow-xs ${
+                  isUnlocked
+                    ? 'border-[#58CC02] border-b-5 bg-[#F8FFF2]'
+                    : isTarget
+                    ? 'border-[#1CB0F6] border-b-5 bg-[#F0F9FF] ring-2 ring-[#84D8FF]/40'
+                    : 'border-gray-200 border-b-4 bg-gray-50/70 hover:bg-white'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-black text-sm text-[#3C3C3C]">
-                    Month {monthNum}
-                  </span>
-                  {isCurrent ? (
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#58CC02] text-white">
-                      In Progress
-                    </span>
-                  ) : isPast ? (
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">
-                      Completed
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-black uppercase text-gray-400">
-                      Upcoming
-                    </span>
-                  )}
-                </div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    {/* Stepping-Stone Icon Badge */}
+                    <div
+                      className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 border-2 border-b-4 ${
+                        isUnlocked
+                          ? 'bg-[#58CC02] border-[#46A302] text-white'
+                          : isTarget
+                          ? 'bg-white border-[#1CB0F6] text-[#1CB0F6]'
+                          : 'bg-gray-200 border-gray-300 text-gray-400'
+                      }`}
+                    >
+                      {isApex ? (
+                        <Crown size={20} className={isUnlocked ? 'text-[#FFC800] fill-[#FFC800]' : 'text-gray-400'} />
+                      ) : isUnlocked ? (
+                        <Check size={20} strokeWidth={4} />
+                      ) : (
+                        <span>{threshold}d</span>
+                      )}
+                    </div>
 
-                <div className="space-y-1.5 text-xs font-bold text-[#777777]">
-                  <div className="flex items-center justify-between">
-                    <span>Nodes Unlocked:</span>
-                    <span className="text-[#3C3C3C] font-black">
-                      {isCurrent ? '2 Nodes' : summary ? `${summary.nodesUnlocked} Nodes` : '—'}
-                    </span>
+                    {/* Rank Title & Milestone Goal */}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-gray-200 text-[#555555]">
+                          Tier {index + 1} • {threshold} Days
+                        </span>
+                        <h4 className="font-black text-sm text-[#3C3C3C]">
+                          {node.rankTitle}
+                        </h4>
+                        {isUnlocked && (
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#EBF9DC] text-[#347A01] border border-[#58CC02]">
+                            Unlocked ✅
+                          </span>
+                        )}
+                        {isTarget && (
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#DDF4FF] text-[#1CB0F6] border border-[#84D8FF] animate-pulse">
+                            Next Target ({progress.daysToNextNode}d left)
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-[#555555] font-semibold mt-1.5 leading-relaxed">
+                        {node.milestoneGoal}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span>Feats Completed:</span>
-                    <span className="text-[#3C3C3C] font-black">
-                      {isCurrent ? `${state.monthlyQuests.filter(q => q.isCompleted).length} Feats` : summary ? `${summary.featsCompleted} Feats` : '—'}
+
+                  {/* Reward Badge */}
+                  <div className="text-right shrink-0">
+                    <span className="text-[10px] font-black uppercase px-2 py-1 rounded-xl bg-white border border-gray-200 text-[#777777] shadow-2xs block">
+                      {node.rewardDescription || (isApex ? '🔮 Epic Chest' : '💎 Rare Chest')}
                     </span>
                   </div>
                 </div>
@@ -317,7 +239,67 @@ export const SkillTreeTab: React.FC = () => {
           })}
         </div>
       </div>
+
+      {/* 6. Milestone Detail Bottom Sheet / Modal */}
+      {selectedMilestoneDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-8 max-w-md w-full p-5 space-y-4 shadow-2xl animate-scale-up">
+            <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🏆</span>
+                <h4 className="font-black text-base text-[#3C3C3C]">
+                  {selectedMilestoneDetail.node.rankTitle}
+                </h4>
+              </div>
+              <button
+                onClick={() => setSelectedMilestoneDetail(null)}
+                className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-xs text-gray-500 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase text-[#777777]">
+                Milestone Objective ({selectedMilestoneDetail.node.threshold} Active Days)
+              </span>
+              <p className="text-xs text-[#3C3C3C] font-bold p-3 bg-gray-50 rounded-2xl border border-gray-200 leading-relaxed">
+                {selectedMilestoneDetail.node.milestoneGoal}
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-[#DDF4FF] border border-[#84D8FF] flex items-center justify-between text-xs font-black text-[#1CB0F6]">
+              <span>Triggered Reward:</span>
+              <span>{selectedMilestoneDetail.node.rewardDescription}</span>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <button
+                onClick={() => {
+                  setSelectedMilestoneDetail(null);
+                  handleOpenCustomize();
+                }}
+                className="text-xs font-black text-[#1CB0F6] hover:underline cursor-pointer"
+              >
+                Edit this milestone ➔
+              </button>
+              <button
+                onClick={() => setSelectedMilestoneDetail(null)}
+                className="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-xs font-black text-[#3C3C3C] cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. Level Customization Engine Modal */}
+      <CustomizeLevelsModal
+        isOpen={isCustomizeModalOpen}
+        onClose={() => setIsCustomizeModalOpen(false)}
+        branchId={selectedBranchId}
+      />
     </div>
   );
 };
-

@@ -3,11 +3,43 @@ export type LootRarity = 'common' | 'rare' | 'epic' | 'legendary';
 export type NodeThreshold = 5 | 15 | 30 | 50 | 80;
 export type ScheduleFilter = 'today' | 'mwf' | 'tts' | 'sunday';
 export type DayScheduleType = 'all' | 'mwf' | 'tts' | 'sunday';
+export type ActiveTab = 'today' | 'skillTree' | 'quests' | 'vault' | 'settings' | 'character';
 
 export interface NodeUnlockStatus {
   threshold: NodeThreshold;
   unlocked: boolean;
   unlockedInMonth?: 1 | 2 | 3;
+}
+
+export interface BranchMilestoneNode {
+  threshold: number; // default: 5, 15, 30, 50, 80
+  rankTitle: string; // 'Novice Initiate', 'Apprentice Strider', 'Adept Practitioner', 'Vanguard Specialist', 'Grandmaster Apex'
+  milestoneGoal: string; // Editable polymath milestone
+  rewardType: 'rare' | 'epic' | 'legendary';
+  rewardDescription: string;
+  unlocked: boolean;
+  unlockedInMonth?: 1 | 2 | 3;
+}
+
+export interface ShiftScheduleConfig {
+  workStartTime: string; // default "12:00"
+  workEndTime: string;   // default "21:00"
+  weekOffDays: string[]; // default ["SAT", "SUN"]
+  commuteBufferMinutes: number;
+  preShiftWindowLabel: string; // "Pre-Shift Morning (6:30 AM – 11:15 AM)"
+  workShiftWindowLabel: string; // "Work Shift (12:00 PM – 9:00 PM)"
+  nightWindDownWindowLabel: string; // "Night Wind-Down (9:45 PM)"
+}
+
+export interface UserAccount {
+  id: string;
+  email: string;
+  characterName: string;
+  characterClass: string;
+  token?: string;
+  isLoggedIn: boolean;
+  lastSyncedAt?: string;
+  cloudD1Status: 'synced' | 'syncing' | 'offline_cached' | 'error';
 }
 
 export interface AttributeBranch {
@@ -23,6 +55,7 @@ export interface AttributeBranch {
   priorMonthsSeasonalDays: number;
   featIdeasScratchpad: string[];
   unlockedNodes: NodeUnlockStatus[];
+  milestoneNodes?: BranchMilestoneNode[];
 }
 
 export interface Habit {
@@ -190,4 +223,12 @@ export interface AppState {
   careerLabs: CareerLabItem[];
   quickLoot: QuickLootState;
   sundayLinks: SundayLinkPrep;
+
+  // Account, Shift & Preferences
+  account?: UserAccount;
+  shiftConfig?: ShiftScheduleConfig;
+  showGameGuide?: boolean;
+  soundEffectsEnabled?: boolean;
+  hapticsEnabled?: boolean;
+  onboardingCompleted?: boolean;
 }

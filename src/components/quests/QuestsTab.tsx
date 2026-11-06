@@ -10,12 +10,16 @@ import {
   Download,
   Trophy,
   ExternalLink,
-  Edit2
+  Edit2,
+  Calendar,
+  Grid
 } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 import { BranchId, MonthlyQuest } from '../../types';
 import { BranchIcon } from '../common/BranchIcon';
 import { ChunkyButton } from '../common/ChunkyButton';
+import { getDaysInMonth, isBranchActiveOnDate, getBranchDaysForMonth } from '../../utils/gameMath';
+import { sound } from '../../utils/audio';
 
 export const QuestsTab: React.FC = () => {
   const {
@@ -26,7 +30,10 @@ export const QuestsTab: React.FC = () => {
     importFeatFromScratchpad
   } = useGame();
 
-  const { monthlyQuests, branches, claimedLoot, character } = state;
+  const { monthlyQuests, branches, claimedLoot, character, habits } = state;
+
+  const [viewMode, setViewMode] = useState<'quests' | 'calendar'>('quests');
+  const [calendarHalf, setCalendarHalf] = useState<'first' | 'second'>('first');
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -44,6 +51,13 @@ export const QuestsTab: React.FC = () => {
   const [mainStars, setMainStars] = useState<1 | 2 | 3 | 4 | 5>(mainQuest?.difficultyStars || 5);
   const [mainReward, setMainReward] = useState(mainQuest?.customReward || '');
   const [mainBranch, setMainBranch] = useState<BranchId>(mainQuest?.branchId || 'body');
+
+  const totalDays = getDaysInMonth(character.currentYearMonth);
+  const halfDays = calendarHalf === 'first'
+    ? Array.from({ length: 15 }, (_, i) => i + 1)
+    : Array.from({ length: totalDays - 15 }, (_, i) => i + 16);
+
+  const branchIds: BranchId[] = ['body', 'mind', 'craft', 'bonds', 'empire'];
 
   const handleCreateSideQuest = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,8 +106,165 @@ export const QuestsTab: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto pb-16">
-      {/* 1. Main Quest Hero Banner (Duolingo Monthly Boss Challenge Card) */}
+    <div className="space-y-6 max-w-md mx-auto sm:max-w-4xl py-4 sm:py-6 px-3 sm:px-4 pb-20">
+      {/* View Switcher: Quests Board vs Half-Month Calendar Grid */}
+      <div className="flex items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-3xl border-2 border-[#E5E5E5] border-b-6 shadow-sm">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              sound.playTap();
+              setViewMode('quests');
+            }}
+            className={`px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+              viewMode === 'quests'
+                ? 'bg-[#1CB0F6] text-white shadow-xs border-b-3'
+                : 'bg-gray-100 text-[#777777] hover:bg-gray-200'
+            }`}
+          >
+            <span>⚔️ Monthly Quests</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sound.playTap();
+              setViewMode('calendar');
+            }}
+            className={`px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+              viewMode === 'calendar'
+                ? 'bg-[#58CC02] text-white shadow-xs border-b-3'
+                : 'bg-gray-100 text-[#777777] hover:bg-gray-200'
+            }`}
+          >
+            <Calendar size={14} />
+            <span>📅 Half-Month Grid</span>
+          </button>
+        </div>
+
+        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#FFF5D6] text-[#A17200] hidden sm:inline">
+          Month {character.currentMonthIndex} ({character.currentYearMonth})
+        </span>
+      </div>
+
+      {/* CALENDAR VIEW MODE */}
+      {viewMode === 'calendar' && (
+        <div className="bg-white rounded-3xl border-2 border-[#E5E5E5] border-b-6 p-4 sm:p-6 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+            <div>
+              <h3 className="font-black text-lg text-[#3C3C3C] flex items-center gap-2">
+                <span>Half-Month Habit Ledger</span>
+                <span className="text-xs font-black px-2 py-0.5 rounded-full bg-[#EBF9DC] text-[#347A01]">
+                  +1 Pt/Branch/Day
+                </span>
+              </h3>
+              <p className="text-xs text-[#777777] font-semibold mt-0.5">
+                Visual matrix of your active daily points across all 5 branches
+              </p>
+            </div>
+
+            {/* Half Month Selector (Days 1–15 vs Days 16–31) */}
+            <div className="flex items-center gap-1.5 bg-gray-100 p-1 rounded-2xl">
+              <button
+                onClick={() => {
+                  sound.playTap();
+                  setCalendarHalf('first');
+                }}
+                className={`px-3 py-1.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                  calendarHalf === 'first'
+                    ? 'bg-white text-[#1CB0F6] shadow-xs'
+                    : 'text-[#777777] hover:text-[#3C3C3C]'
+                }`}
+              >
+                Days 1–15
+              </button>
+              <button
+                onClick={() => {
+                  sound.playTap();
+                  setCalendarHalf('second');
+                }}
+                className={`px-3 py-1.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                  calendarHalf === 'second'
+                    ? 'bg-white text-[#1CB0F6] shadow-xs'
+                    : 'text-[#777777] hover:text-[#3C3C3C]'
+                }`}
+              >
+                Days 16–{totalDays}
+              </button>
+            </div>
+          </div>
+
+          {/* Matrix Grid */}
+          <div className="overflow-x-auto pb-2">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left font-black text-[#777777] uppercase py-2 pr-3 min-w-[90px]">
+                    Branch
+                  </th>
+                  {halfDays.map(d => (
+                    <th key={d} className="font-black text-center text-[#777777] px-1 py-2 min-w-[26px]">
+                      {d}
+                    </th>
+                  ))}
+                  <th className="text-right font-black text-[#777777] uppercase py-2 pl-3 min-w-[50px]">
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {branchIds.map(bId => {
+                  const b = branches[bId];
+                  const branchDaysSummary = getBranchDaysForMonth(bId, habits, character.currentYearMonth);
+
+                  return (
+                    <tr key={bId} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="py-2.5 pr-3">
+                        <div className="flex items-center gap-1.5">
+                          <BranchIcon branchId={bId} size={15} />
+                          <span className="font-extrabold uppercase text-[#3C3C3C] text-[11px]">
+                            {b.name}
+                          </span>
+                        </div>
+                      </td>
+
+                      {halfDays.map(d => {
+                        const dateStr = `${character.currentYearMonth}-${String(d).padStart(2, '0')}`;
+                        const isActive = isBranchActiveOnDate(bId, habits, dateStr);
+
+                        return (
+                          <td key={d} className="px-1 py-2 text-center">
+                            <div
+                              className={`w-6 h-6 rounded-lg mx-auto flex items-center justify-center font-black text-[10px] transition-transform ${
+                                isActive
+                                  ? 'text-white shadow-2xs scale-105'
+                                  : 'bg-gray-100 text-gray-300'
+                              }`}
+                              style={{ backgroundColor: isActive ? b.colorHex : undefined }}
+                              title={`${b.name} on day ${d}: ${isActive ? '+1 Point' : 'Inactive'}`}
+                            >
+                              {isActive ? '✓' : '·'}
+                            </div>
+                          </td>
+                        );
+                      })}
+
+                      <td className="py-2.5 pl-3 text-right">
+                        <span className="font-black text-xs text-[#3C3C3C]">
+                          {branchDaysSummary.totalMonthDays}d
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* QUESTS VIEW MODE */}
+      {viewMode === 'quests' && (
+        <>
+          {/* 1. Main Quest Hero Banner (Duolingo Monthly Boss Challenge Card) */}
       {mainQuest ? (
         <div className="relative overflow-hidden rounded-3xl border-2 border-b-6 border-[#FFC800] bg-gradient-to-r from-[#FFF8E6] via-[#FFF2CC] to-[#FFEAA8] p-4 sm:p-8 shadow-md">
           {/* Decorative Corner Crown Accent */}
@@ -367,6 +538,8 @@ export const QuestsTab: React.FC = () => {
           </div>
         )}
       </div>
+      </>
+      )}
 
       {/* Modal: Pull from Skill Key Ideas */}
       {isImportModalOpen && (

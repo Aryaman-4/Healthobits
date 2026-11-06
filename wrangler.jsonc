@@ -1,20 +1,19 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "polymath-quest-api",
+  "name": "polymath-quest",
   "main": "src/server/index.ts",
   "compatibility_date": "2026-03-01",
   "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "polymath-quest-d1",
-      "database_id": "00000000-0000-0000-0000-000000000000"
-    }
-  ],
-  "kv_namespaces": [
-    {
-      "binding": "KV",
-      "id": "polymath-quest-kv"
+      "database_id": "d6368cc8-b4c0-4f76-b752-cf53ed309f36"
     }
   ],
   "triggers": {

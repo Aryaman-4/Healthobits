@@ -12,8 +12,254 @@ import {
   FinelinerTrackerState,
   CareerLabItem,
   QuickLootState,
-  SundayLinkPrep
+  SundayLinkPrep,
+  BranchMilestoneNode,
+  ShiftScheduleConfig,
+  UserAccount
 } from '../types';
+
+export const DEFAULT_BRANCH_MILESTONES: Record<BranchId, BranchMilestoneNode[]> = {
+  body: [
+    {
+      threshold: 5,
+      rankTitle: 'Novice Initiate',
+      milestoneGoal: 'Nail 5 days of joint prep + wall handstand holds',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: true,
+      unlockedInMonth: 1
+    },
+    {
+      threshold: 15,
+      rankTitle: 'Apprentice Strider',
+      milestoneGoal: '30s freestanding frog stand / 10 archer pushups',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: true,
+      unlockedInMonth: 1
+    },
+    {
+      threshold: 30,
+      rankTitle: 'Adept Practitioner',
+      milestoneGoal: 'Crow-to-Crane transition + explosive pistol squat reps',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: false
+    },
+    {
+      threshold: 50,
+      rankTitle: 'Vanguard Specialist',
+      milestoneGoal: 'Wall Handstand Push-Up (HSPU) reps + Eight-Angle pose hold',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: false
+    },
+    {
+      threshold: 80,
+      rankTitle: 'Grandmaster Apex',
+      milestoneGoal: 'Full 60m Calisthenics/Acrobatics mastery + Peacock pose',
+      rewardType: 'epic',
+      rewardDescription: '🔮 Epic Loot Chest + +1 Branch Level',
+      unlocked: false
+    }
+  ],
+  mind: [
+    {
+      threshold: 5,
+      rankTitle: 'Novice Initiate',
+      milestoneGoal: 'Read 145 pages + log 5 quotes',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: true,
+      unlockedInMonth: 1
+    },
+    {
+      threshold: 15,
+      rankTitle: 'Apprentice Strider',
+      milestoneGoal: 'Complete 1st full 400-page book + Anki review',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: true,
+      unlockedInMonth: 1
+    },
+    {
+      threshold: 30,
+      rankTitle: 'Adept Practitioner',
+      milestoneGoal: 'Complete 2nd book + 30-day meditation anchor',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: false
+    },
+    {
+      threshold: 50,
+      rankTitle: 'Vanguard Specialist',
+      milestoneGoal: 'Complete 3.5 books + 150 Anki cards mastered',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: false
+    },
+    {
+      threshold: 80,
+      rankTitle: 'Grandmaster Apex',
+      milestoneGoal: '6 books finished in Season (2,400 pages) + sharp recall',
+      rewardType: 'epic',
+      rewardDescription: '🔮 Epic Loot Chest + +1 Branch Level',
+      unlocked: false
+    }
+  ],
+  craft: [
+    {
+      threshold: 5,
+      rankTitle: 'Novice Initiate',
+      milestoneGoal: 'Clean finger sealing on Alankars 1–2 / 1st pencil grid',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: true,
+      unlockedInMonth: 1
+    },
+    {
+      threshold: 15,
+      rankTitle: 'Apprentice Strider',
+      milestoneGoal: 'Master Alankars 1–4 + whistle match / Finish 1st Fineliner piece',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: true,
+      unlockedInMonth: 1
+    },
+    {
+      threshold: 30,
+      rankTitle: 'Adept Practitioner',
+      milestoneGoal: 'Unlock Alankars 5–6 (triplets) + 2nd Fineliner shading mastery',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: false
+    },
+    {
+      threshold: 50,
+      rankTitle: 'Vanguard Specialist',
+      milestoneGoal: 'Master Alankars 7–8 across octaves + 1st AMV/Vlog milestone',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: false
+    },
+    {
+      threshold: 80,
+      rankTitle: 'Grandmaster Apex',
+      milestoneGoal: 'Record clean 1-take Flute song with gamak/meend + 5 Ink pieces',
+      rewardType: 'epic',
+      rewardDescription: '🔮 Epic Loot Chest + +1 Branch Level',
+      unlocked: false
+    }
+  ],
+  bonds: [
+    {
+      threshold: 5,
+      rankTitle: 'Novice Initiate',
+      milestoneGoal: '5 daily family check-ins + 2 AI English sessions',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: true,
+      unlockedInMonth: 1
+    },
+    {
+      threshold: 15,
+      rankTitle: 'Apprentice Strider',
+      milestoneGoal: '2 weekly friend calls via Question Bank + 1st Vlog voiceover',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: true,
+      unlockedInMonth: 1
+    },
+    {
+      threshold: 30,
+      rankTitle: 'Adept Practitioner',
+      milestoneGoal: '4 English video journals recorded + deep mentor catch-up',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: false
+    },
+    {
+      threshold: 50,
+      rankTitle: 'Vanguard Specialist',
+      milestoneGoal: 'Natural unscripted 3-min English storytelling flow',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: false
+    },
+    {
+      threshold: 80,
+      rankTitle: 'Grandmaster Apex',
+      milestoneGoal: 'Thriving inner circle + confident public/video communication',
+      rewardType: 'epic',
+      rewardDescription: '🔮 Epic Loot Chest + +1 Branch Level',
+      unlocked: false
+    }
+  ],
+  empire: [
+    {
+      threshold: 5,
+      rankTitle: 'Novice Initiate',
+      milestoneGoal: '5 days expense logging + 2 Cloud/Security lab setups',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: true,
+      unlockedInMonth: 1
+    },
+    {
+      threshold: 15,
+      rankTitle: 'Apprentice Strider',
+      milestoneGoal: 'Deploy 1st Cloud VPC mini-project + 15d expense streak',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: false
+    },
+    {
+      threshold: 30,
+      rankTitle: 'Adept Practitioner',
+      milestoneGoal: 'Build Python Security Agent lab + publish LinkedIn case study',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: false
+    },
+    {
+      threshold: 50,
+      rankTitle: 'Vanguard Specialist',
+      milestoneGoal: 'Complete 4 Cloud/AI portfolio labs + full monthly budget audit',
+      rewardType: 'rare',
+      rewardDescription: '💎 Rare Loot Chest + +1 Branch Level',
+      unlocked: false
+    },
+    {
+      threshold: 80,
+      rankTitle: 'Grandmaster Apex',
+      milestoneGoal: 'Cloud + Cybersec + Agentic AI capstone ready + financial control',
+      rewardType: 'epic',
+      rewardDescription: '🔮 Epic Loot Chest + +1 Branch Level',
+      unlocked: false
+    }
+  ]
+};
+
+export const DEFAULT_SHIFT_CONFIG: ShiftScheduleConfig = {
+  workStartTime: '12:00',
+  workEndTime: '21:00',
+  weekOffDays: ['SAT', 'SUN'],
+  commuteBufferMinutes: 45,
+  preShiftWindowLabel: 'Pre-Shift Morning 6:30–11:15 AM',
+  workShiftWindowLabel: 'Work Shift 12:00–9:00 PM',
+  nightWindDownWindowLabel: 'Night Wind-Down 9:45 PM'
+};
+
+export const DEFAULT_ACCOUNT: UserAccount = {
+  id: 'usr_polymath_01',
+  email: 'aryan.quest@polymath.dev',
+  characterName: 'Aryan',
+  characterClass: 'Cloud-Native Polymath',
+  token: 'mock_jwt_d1_session_token_xyz',
+  isLoggedIn: true,
+  lastSyncedAt: new Date().toISOString(),
+  cloudD1Status: 'synced'
+};
 
 export const INITIAL_BRANCHES: Record<BranchId, AttributeBranch> = {
   body: {
@@ -38,7 +284,8 @@ export const INITIAL_BRANCHES: Record<BranchId, AttributeBranch> = {
       { threshold: 30, unlocked: false },
       { threshold: 50, unlocked: false },
       { threshold: 80, unlocked: false }
-    ]
+    ],
+    milestoneNodes: DEFAULT_BRANCH_MILESTONES.body
   },
   mind: {
     id: 'mind',
@@ -62,7 +309,8 @@ export const INITIAL_BRANCHES: Record<BranchId, AttributeBranch> = {
       { threshold: 30, unlocked: false },
       { threshold: 50, unlocked: false },
       { threshold: 80, unlocked: false }
-    ]
+    ],
+    milestoneNodes: DEFAULT_BRANCH_MILESTONES.mind
   },
   craft: {
     id: 'craft',
@@ -86,7 +334,8 @@ export const INITIAL_BRANCHES: Record<BranchId, AttributeBranch> = {
       { threshold: 30, unlocked: false },
       { threshold: 50, unlocked: false },
       { threshold: 80, unlocked: false }
-    ]
+    ],
+    milestoneNodes: DEFAULT_BRANCH_MILESTONES.craft
   },
   bonds: {
     id: 'bonds',
@@ -110,7 +359,8 @@ export const INITIAL_BRANCHES: Record<BranchId, AttributeBranch> = {
       { threshold: 30, unlocked: false },
       { threshold: 50, unlocked: false },
       { threshold: 80, unlocked: false }
-    ]
+    ],
+    milestoneNodes: DEFAULT_BRANCH_MILESTONES.bonds
   },
   empire: {
     id: 'empire',
@@ -134,7 +384,8 @@ export const INITIAL_BRANCHES: Record<BranchId, AttributeBranch> = {
       { threshold: 30, unlocked: false },
       { threshold: 50, unlocked: false },
       { threshold: 80, unlocked: false }
-    ]
+    ],
+    milestoneNodes: DEFAULT_BRANCH_MILESTONES.empire
   }
 };
 
@@ -638,5 +889,13 @@ export const INITIAL_STATE: AppState = {
   finelinerTracker: INITIAL_FINELINER_TRACKER,
   careerLabs: INITIAL_CAREER_LABS,
   quickLoot: INITIAL_QUICK_LOOT,
-  sundayLinks: INITIAL_SUNDAY_LINKS
+  sundayLinks: INITIAL_SUNDAY_LINKS,
+
+  // Account, Shift & Preferences
+  account: DEFAULT_ACCOUNT,
+  shiftConfig: DEFAULT_SHIFT_CONFIG,
+  showGameGuide: true,
+  soundEffectsEnabled: true,
+  hapticsEnabled: true,
+  onboardingCompleted: true
 };

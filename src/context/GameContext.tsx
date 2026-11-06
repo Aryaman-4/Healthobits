@@ -13,10 +13,15 @@ import {
   ScheduleFilter,
   AlankarItem,
   CareerLabItem,
-  SundayLinkPrep
+  SundayLinkPrep,
+  ActiveTab,
+  BranchMilestoneNode,
+  ShiftScheduleConfig,
+  UserAccount
 } from '../types';
-import { INITIAL_STATE } from '../data/seedData';
+import { INITIAL_STATE, DEFAULT_BRANCH_MILESTONES, DEFAULT_SHIFT_CONFIG, DEFAULT_ACCOUNT } from '../data/seedData';
 import { sound } from '../utils/audio';
+import { apiClient } from '../services/apiClient';
 import {
   calculateCharacterOverallLevel,
   calculateHabitStreak,
@@ -28,12 +33,14 @@ import {
 
 interface GameContextType {
   state: AppState;
-  activeTab: 'today' | 'skillTree' | 'quests' | 'character' | 'vault';
-  setActiveTab: (tab: 'today' | 'skillTree' | 'quests' | 'character' | 'vault') => void;
+  activeTab: ActiveTab;
+  setActiveTab: (tab: ActiveTab) => void;
   keystoneModeOnly: boolean;
   setKeystoneModeOnly: React.Dispatch<React.SetStateAction<boolean>>;
   soundEnabled: boolean;
   toggleSound: () => void;
+  hapticsEnabled: boolean;
+  toggleHaptics: () => void;
   selectedDate: string;
   setSelectedDate: (date: string) => void;
   activeSpread: 'first' | 'second';
@@ -46,6 +53,32 @@ interface GameContextType {
   // Active Sub-Studio Modal Launcher
   activeStudioModal: 'workout' | 'music' | 'art' | 'reading' | 'career' | 'english' | 'quickLoot' | 'sundayLinks' | null;
   setActiveStudioModal: (modal: 'workout' | 'music' | 'art' | 'reading' | 'career' | 'english' | 'quickLoot' | 'sundayLinks' | null) => void;
+
+  // Guide, Tutorial & Shift Switcher Modals
+  showGameGuide: boolean;
+  setShowGameGuide: (show: boolean) => void;
+  toggleGameGuide: () => void;
+  isOnboardingOpen: boolean;
+  setIsOnboardingOpen: (open: boolean) => void;
+  completeOnboarding: (data?: { shift?: any; keystones?: string[]; signatureUrl?: string }) => void;
+  isShiftSwitcherOpen: boolean;
+  setIsShiftSwitcherOpen: (open: boolean) => void;
+  isCharacterGuideModalOpen: boolean;
+  setIsCharacterGuideModalOpen: (open: boolean) => void;
+
+  // Cloudflare D1 Auth & Data Persistence
+  account: UserAccount;
+  loginUser: (payload: { email: string; password: string; rememberMe?: boolean }) => Promise<{ success: boolean; error?: string }>;
+  registerUser: (payload: { email: string; password: string; characterName?: string; characterClass?: string; rememberMe?: boolean }) => Promise<{ success: boolean; error?: string }>;
+  logoutUser: () => Promise<void>;
+  syncWithCloudD1: () => Promise<void>;
+
+  // Shift & Schedule Engine Config
+  shiftConfig: ShiftScheduleConfig;
+  updateShiftConfig: (updates: Partial<ShiftScheduleConfig>) => void;
+
+  // Branch Milestones Customization
+  updateBranchMilestones: (branchId: BranchId, nodes: BranchMilestoneNode[]) => void;
 
   // Habit Actions
   toggleHabitCompletion: (habitId: string, dateStr: string) => void;
@@ -119,7 +152,28 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        const branches = Object.keys(INITIAL_STATE.branches).reduce((acc, bKey) => {
+          const bId = bKey as BranchId;
+          const savedBranch = parsed.branches?.[bId] || {};
+          acc[bId] = {
+            ...INITIAL_STATE.branches[bId],
+            ...savedBranch,
+            milestoneNodes: savedBranch.milestoneNodes || DEFAULT_BRANCH_MILESTONES[bId]
+          };
+          return acc;
+        }, {} as Record<BranchId, AttributeBranch>);
+
+        return {
+          ...INITIAL_STATE,
+          ...parsed,
+          branches,
+          account: parsed.account || DEFAULT_ACCOUNT,
+          shiftConfig: parsed.shiftConfig || DEFAULT_SHIFT_CONFIG,
+          showGameGuide: parsed.showGameGuide !== undefined ? parsed.showGameGuide : true,
+          soundEffectsEnabled: parsed.soundEffectsEnabled !== undefined ? parsed.soundEffectsEnabled : true,
+          hapticsEnabled: parsed.hapticsEnabled !== undefined ? parsed.hapticsEnabled : true
+        };
       }
     } catch (e) {
       console.error('Failed to parse saved state:', e);
@@ -127,11 +181,18 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return INITIAL_STATE;
   });
 
-  const [activeTab, setActiveTab] = useState<'today' | 'skillTree' | 'quests' | 'character' | 'vault'>('today');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('today');
   const [keystoneModeOnly, setKeystoneModeOnly] = useState<boolean>(false);
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(sound.isEnabled());
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => sound.isEnabled());
+  const [hapticsEnabled, setHapticsEnabled] = useState<boolean>(() => state.hapticsEnabled ?? true);
   const [selectedDate, setSelectedDate] = useState<string>(() => formatDate(new Date()));
   const [activeSpread, setActiveSpread] = useState<'first' | 'second'>('first');
+
+  // Modals & Navigation Helpers
+  const [showGameGuide, setShowGameGuide] = useState<boolean>(() => state.showGameGuide ?? true);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
+  const [isShiftSwitcherOpen, setIsShiftSwitcherOpen] = useState<boolean>(false);
+  const [isCharacterGuideModalOpen, setIsCharacterGuideModalOpen] = useState<boolean>(false);
 
   // Schedule Filter: defaults to 'today' (auto-detected), but user can override to 'mwf', 'tts', or 'sunday'
   const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>('today');
@@ -150,6 +211,148 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const toggleSound = () => {
     const next = sound.toggleSound();
     setSoundEnabled(next);
+    setState(prev => ({ ...prev, soundEffectsEnabled: next }));
+  };
+
+  const toggleHaptics = () => {
+    const next = !hapticsEnabled;
+    setHapticsEnabled(next);
+    setState(prev => ({ ...prev, hapticsEnabled: next }));
+  };
+
+  const toggleGameGuide = () => {
+    const next = !showGameGuide;
+    setShowGameGuide(next);
+    setState(prev => ({ ...prev, showGameGuide: next }));
+  };
+
+  // Auth Operations
+  const loginUser = async (payload: { email: string; password: string; rememberMe?: boolean }) => {
+    sound.playTap();
+    const res = await apiClient.login(payload);
+    if (res.success && res.data) {
+      const { user, savedState } = res.data;
+      setState(prev => {
+        const nextState = savedState ? { ...prev, ...savedState } : prev;
+        return {
+          ...nextState,
+          account: {
+            id: user.id,
+            email: user.email,
+            characterName: user.characterName,
+            characterClass: user.characterClass,
+            isLoggedIn: true,
+            token: res.data.token,
+            lastSyncedAt: new Date().toISOString(),
+            cloudD1Status: 'synced'
+          }
+        };
+      });
+      return { success: true };
+    }
+    return { success: false, error: res.error || 'Login failed' };
+  };
+
+  const registerUser = async (payload: { email: string; password: string; characterName?: string; characterClass?: string; rememberMe?: boolean }) => {
+    sound.playLevelUp();
+    const res = await apiClient.register(payload);
+    if (res.success && res.data) {
+      const { user } = res.data;
+      setState(prev => ({
+        ...prev,
+        account: {
+          id: user.id,
+          email: user.email,
+          characterName: user.characterName || 'Aryan',
+          characterClass: user.characterClass || 'Cloud-Native Polymath',
+          isLoggedIn: true,
+          token: res.data.token,
+          lastSyncedAt: new Date().toISOString(),
+          cloudD1Status: 'synced'
+        }
+      }));
+      // Launch Onboarding wizard for new player
+      setIsOnboardingOpen(true);
+      return { success: true };
+    }
+    return { success: false, error: res.error || 'Registration failed' };
+  };
+
+  const logoutUser = async () => {
+    sound.playTap();
+    await apiClient.logout();
+    setState(prev => ({
+      ...prev,
+      account: {
+        id: '',
+        email: '',
+        characterName: 'Guest Adventurer',
+        characterClass: 'Polymath Novice',
+        isLoggedIn: false,
+        cloudD1Status: 'offline_cached'
+      }
+    }));
+  };
+
+  const syncWithCloudD1 = async () => {
+    if (!state.account?.isLoggedIn) return;
+    setState(prev => ({
+      ...prev,
+      account: prev.account ? { ...prev.account, cloudD1Status: 'syncing' } : undefined
+    }));
+    const res = await apiClient.syncStateToCloud(state);
+    setState(prev => ({
+      ...prev,
+      account: prev.account ? {
+        ...prev.account,
+        cloudD1Status: res.cloudD1Status as any,
+        lastSyncedAt: res.lastSyncedAt
+      } : undefined
+    }));
+  };
+
+  const updateShiftConfig = (updates: Partial<ShiftScheduleConfig>) => {
+    setState(prev => {
+      const nextShiftConfig = {
+        ...(prev.shiftConfig || DEFAULT_SHIFT_CONFIG),
+        ...updates
+      };
+      return { ...prev, shiftConfig: nextShiftConfig };
+    });
+  };
+
+  const updateBranchMilestones = (branchId: BranchId, nodes: BranchMilestoneNode[]) => {
+    setState(prev => ({
+      ...prev,
+      branches: {
+        ...prev.branches,
+        [branchId]: {
+          ...prev.branches[branchId],
+          milestoneNodes: nodes
+        }
+      }
+    }));
+  };
+
+  const completeOnboarding = (data?: { shift?: any; keystones?: string[]; signatureUrl?: string }) => {
+    if (data?.signatureUrl) {
+      signSeasonalPact(data.signatureUrl);
+    }
+    if (data?.shift) {
+      updateShiftConfig(data.shift);
+    }
+    setState(prev => ({
+      ...prev,
+      onboardingCompleted: true,
+      showGameGuide: true
+    }));
+    setIsOnboardingOpen(false);
+    sound.playFanfare();
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
   };
 
   // Toggle Habit Completion
@@ -806,6 +1009,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setKeystoneModeOnly,
         soundEnabled,
         toggleSound,
+        hapticsEnabled,
+        toggleHaptics,
         selectedDate,
         setSelectedDate,
         activeSpread,
@@ -814,6 +1019,24 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setScheduleFilter,
         activeStudioModal,
         setActiveStudioModal,
+        showGameGuide,
+        setShowGameGuide,
+        toggleGameGuide,
+        isOnboardingOpen,
+        setIsOnboardingOpen,
+        completeOnboarding,
+        isShiftSwitcherOpen,
+        setIsShiftSwitcherOpen,
+        isCharacterGuideModalOpen,
+        setIsCharacterGuideModalOpen,
+        account: state.account || DEFAULT_ACCOUNT,
+        loginUser,
+        registerUser,
+        logoutUser,
+        syncWithCloudD1,
+        shiftConfig: state.shiftConfig || DEFAULT_SHIFT_CONFIG,
+        updateShiftConfig,
+        updateBranchMilestones,
         toggleHabitCompletion,
         addHabit,
         editHabit,

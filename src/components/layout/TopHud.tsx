@@ -1,159 +1,128 @@
 import React from 'react';
-import { Flame, Gift, Star, Volume2, VolumeX, Printer, RotateCcw, Sparkles, ShoppingBag, Sliders } from 'lucide-react';
-import { useGame } from '../../context/GameContext';
+import { Flame, Gift, Star, HelpCircle, ChevronDown } from 'lucide-react';
+import { useGame, getScheduleTypeFromDate } from '../../context/GameContext';
+import { sound } from '../../utils/audio';
 
-interface TopHudProps {
-  onOpenPrintModal: () => void;
-  onOpenSettings?: () => void;
-}
-
-export const TopHud: React.FC<TopHudProps> = ({ onOpenPrintModal, onOpenSettings }) => {
+export const TopHud: React.FC = () => {
   const {
     state,
     overallLevel,
     totalPendingChests,
     keystoneStreakDays,
-    soundEnabled,
-    toggleSound,
-    resetAllDemoData,
+    scheduleFilter,
+    selectedDate,
     setActiveTab,
-    setActiveStudioModal
+    setIsShiftSwitcherOpen,
+    setIsCharacterGuideModalOpen
   } = useGame();
 
   const { character } = state;
+  const autoDay = getScheduleTypeFromDate(selectedDate);
+  const effectiveDay = scheduleFilter === 'today' ? autoDay : scheduleFilter;
+
+  // Format Center Badge Label
+  const getDayModeBadge = () => {
+    switch (effectiveDay) {
+      case 'mwf':
+        return { label: '⚡ MWF Tech Shift', bg: 'bg-[#DDF4FF]', border: 'border-[#1CB0F6]', text: 'text-[#1CB0F6]' };
+      case 'tts':
+        return { label: '🎨 Tue-Thu Art Shift', bg: 'bg-[#FFF5D6]', border: 'border-[#FFC800]', text: 'text-[#A17200]' };
+      case 'sunday':
+        return { label: '👑 Weekend Off', bg: 'bg-[#F3E5FF]', border: 'border-[#CE82FF]', text: 'text-[#A560E8]' };
+      default:
+        return { label: `📅 Today (${autoDay.toUpperCase()})`, bg: 'bg-gray-100', border: 'border-gray-300', text: 'text-[#3C3C3C]' };
+    }
+  };
+
+  const badge = getDayModeBadge();
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-2 border-[#E5E5E5] px-2.5 sm:px-6 py-2 sm:py-2.5 shadow-sm">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-4">
-        {/* Left: Character Avatar & Fun Class Badge */}
-        <div className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0" onClick={() => setActiveTab('character')}>
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-2 border-[#E5E5E5] px-3 sm:px-6 py-2 shadow-xs">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+        {/* ELEMENT 1 (LEFT): Compact Character Pill */}
+        <button
+          onClick={() => {
+            sound.playTap();
+            setIsCharacterGuideModalOpen(true);
+          }}
+          className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-2xl bg-gray-50 hover:bg-[#DDF4FF]/40 border-2 border-gray-200 hover:border-[#1CB0F6] cursor-pointer transition-all active:translate-y-0.5 shadow-2xs group shrink-0"
+          title="Open Character Sheet & Game Guide"
+        >
+          {/* Avatar Icon */}
           <div
-            className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-white font-black text-base sm:text-lg border-2 border-b-4 shadow-sm group-hover:scale-105 transition-transform shrink-0"
-            style={{ backgroundColor: character.avatarBg, borderColor: '#33333333' }}
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-sm sm:text-base border border-black/10 shadow-xs"
+            style={{ backgroundColor: character.avatarBg }}
           >
             {character.avatarSeed === 'knight' ? '🛡️' : character.avatarSeed === 'wizard' ? '🧙' : '👑'}
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-[#3C3C3C] text-xs sm:text-base leading-tight group-hover:text-[#1CB0F6] transition-colors truncate">
-                {character.name}
-              </span>
-              <span className="text-[9px] sm:text-[10px] font-black uppercase px-1.5 py-0.5 rounded-full bg-[#DDF4FF] text-[#1CB0F6] border border-[#84D8FF] tracking-wide shrink-0">
-                S1
-              </span>
+
+          {/* Level Shield & Guide Badge */}
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-0.5 text-xs font-black text-[#3C3C3C]">
+              <span className="text-[10px] text-[#A17200] font-black uppercase">LVL</span>
+              <span className="text-xs sm:text-sm">{overallLevel}</span>
             </div>
-            <div className="hidden xs:flex text-[11px] sm:text-xs text-[#777777] font-semibold items-center gap-1 truncate max-w-[110px] sm:max-w-xs">
-              <Sparkles size={11} className="text-[#FFC800] shrink-0" />
-              <span className="truncate">{character.classTitle}</span>
+
+            <div className="w-5 h-5 rounded-full bg-[#DDF4FF] text-[#1CB0F6] flex items-center justify-center text-[10px] font-black group-hover:scale-110 transition-transform">
+              ?
             </div>
           </div>
-        </div>
+        </button>
 
-        {/* Center / Right: RPG Stats HUD & Quick-Loot */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-          {/* Quick-Loot Bag Pill Button (Visible on Desktop, Mobile has Persistent Floating Action Button) */}
+        {/* ELEMENT 2 (CENTER): Current Day Mode Badge (Tap opens Shift Switcher) */}
+        <button
+          onClick={() => {
+            sound.playTap();
+            setIsShiftSwitcherOpen(true);
+          }}
+          className={`px-3 py-1 sm:py-1.5 rounded-2xl border-2 text-xs font-black uppercase tracking-wider cursor-pointer active:translate-y-0.5 transition-all shadow-2xs flex items-center gap-1.5 truncate max-w-[170px] sm:max-w-none ${badge.bg} ${badge.border} ${badge.text}`}
+          title="Tap to change active Shift Mode"
+        >
+          <span className="truncate">{badge.label}</span>
+          <ChevronDown size={13} className="shrink-0 opacity-70" />
+        </button>
+
+        {/* ELEMENT 3 (RIGHT): Keystone Streak & Unopened Loot Chest Badge */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Keystone Streak */}
           <button
-            onClick={() => setActiveStudioModal('quickLoot')}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF5D6] border-2 border-[#FFC800] border-b-4 text-[#A17200] font-black text-xs uppercase tracking-wider cursor-pointer hover:bg-[#ffeec2] active:translate-y-0.5 transition-all shadow-xs"
-            title="Open Quick-Loot Bag (Expenses, 10s Clips, Anki Export & CRM)"
-          >
-            <ShoppingBag size={15} />
-            <span>Quick-Loot</span>
-          </button>
-
-          {/* Overall Level Shield */}
-          <div
-            onClick={() => setActiveTab('skillTree')}
-            className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-2xl bg-gradient-to-b from-[#FFF9E6] to-[#FFF0B8] border-2 border-[#FFC800] border-b-4 shadow-sm cursor-pointer active:translate-y-0.5 transition-transform"
-            title="Total Character Level (Sum of 5 Attributes)"
-          >
-            <Star size={14} className="text-[#E5A400] fill-[#FFC800] shrink-0 sm:w-4 sm:h-4" />
-            <div className="flex items-center gap-0.5 sm:gap-1">
-              <span className="text-[9px] sm:text-[10px] uppercase font-black text-[#A17200] leading-none">LVL</span>
-              <span className="text-xs sm:text-base font-black text-[#3C3C3C] leading-none">{overallLevel}</span>
-            </div>
-          </div>
-
-          {/* Active Keystone Streak */}
-          <div
-            onClick={() => setActiveTab('today')}
-            className={`flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-2xl border-2 border-b-4 shadow-sm cursor-pointer active:translate-y-0.5 transition-transform ${
+            onClick={() => {
+              sound.playTap();
+              setActiveTab('today');
+            }}
+            className={`flex items-center gap-1 px-2.5 py-1 sm:py-1.5 rounded-2xl border-2 border-b-3 cursor-pointer active:translate-y-0.5 transition-all shadow-2xs ${
               keystoneStreakDays > 0
                 ? 'bg-[#FFF2E6] border-[#FF9600] text-[#D85E00]'
-                : 'bg-gray-100 border-gray-300 text-gray-500'
+                : 'bg-gray-50 border-gray-200 text-gray-400'
             }`}
             title="Keystone Habit Streak (Consecutive days)"
           >
             <Flame
               size={15}
-              className={`shrink-0 sm:w-[18px] sm:h-[18px] ${keystoneStreakDays > 0 ? 'text-[#FF7A00] fill-[#FF9600] animate-bounce-soft' : 'text-gray-400'}`}
+              className={keystoneStreakDays > 0 ? 'text-[#FF7A00] fill-[#FF9600] animate-bounce-soft' : 'text-gray-400'}
             />
-            <div className="flex items-center gap-0.5 sm:gap-1">
-              <span className="text-xs sm:text-base font-black leading-none">{keystoneStreakDays}</span>
-              <span className="text-[10px] font-bold uppercase hidden sm:inline leading-none">Streak</span>
-            </div>
-          </div>
+            <span className="text-xs sm:text-sm font-black leading-none">{keystoneStreakDays}</span>
+          </button>
 
-          {/* Unopened Loot Chest Counter */}
+          {/* Unopened Chest Badge */}
           <button
-            onClick={() => setActiveTab('vault')}
-            className={`flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-2xl border-2 border-b-4 cursor-pointer select-none transition-transform active:translate-y-0.5 ${
+            onClick={() => {
+              sound.playTap();
+              setActiveTab('vault');
+            }}
+            className={`flex items-center gap-1 px-2.5 py-1 sm:py-1.5 rounded-2xl border-2 border-b-3 cursor-pointer active:translate-y-0.5 transition-all shadow-2xs ${
               totalPendingChests > 0
                 ? 'bg-[#EBF9DC] border-[#58CC02] text-[#347A01] animate-pulse'
-                : 'bg-white border-[#E5E5E5] text-[#777777]'
+                : 'bg-white border-gray-200 text-gray-400'
             }`}
             title={`${totalPendingChests} Unopened Loot Chest(s)`}
           >
             <Gift
               size={15}
-              className={`shrink-0 sm:w-[17px] sm:h-[17px] ${totalPendingChests > 0 ? 'text-[#58CC02] fill-[#D7FFB8]' : 'text-gray-400'}`}
+              className={totalPendingChests > 0 ? 'text-[#58CC02] fill-[#D7FFB8]' : 'text-gray-400'}
             />
-            <span className="text-xs sm:text-base font-black leading-none">{totalPendingChests}</span>
-            {totalPendingChests > 0 && (
-              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#FF4B4B] animate-ping" />
-            )}
+            <span className="text-xs sm:text-sm font-black leading-none">{totalPendingChests}</span>
           </button>
-
-          {/* Utility Action Buttons */}
-          <div className="flex items-center gap-1 pl-1 border-l border-gray-200">
-            {/* System Engine & Settings Drawer */}
-            {onOpenSettings && (
-              <button
-                onClick={onOpenSettings}
-                className="p-1.5 sm:p-2 rounded-xl text-[#777777] hover:text-[#1CB0F6] hover:bg-[#DDF4FF] border border-transparent hover:border-[#84D8FF] transition-all cursor-pointer"
-                title="System Settings & Full CRUD Gamification Engine"
-              >
-                <Sliders size={16} className="sm:w-[18px] sm:h-[18px]" />
-              </button>
-            )}
-
-            {/* Pocket Booklet Print */}
-            <button
-              onClick={onOpenPrintModal}
-              className="hidden sm:flex p-2 rounded-xl text-[#777777] hover:text-[#1CB0F6] hover:bg-[#DDF4FF] border border-transparent hover:border-[#84D8FF] transition-all cursor-pointer"
-              title="Print My Pocket Notebook Insert (French-Fold Zine)"
-            >
-              <Printer size={18} />
-            </button>
-
-            {/* Sound Toggle */}
-            <button
-              onClick={toggleSound}
-              className="p-1.5 sm:p-2 rounded-xl text-[#777777] hover:text-[#58CC02] hover:bg-[#D7FFB8] border border-transparent hover:border-[#58CC02] transition-all cursor-pointer"
-              title={soundEnabled ? 'Sound is ON (Click to mute)' : 'Sound is OFF (Click to unmute)'}
-            >
-              {soundEnabled ? <Volume2 size={16} className="sm:w-[18px] sm:h-[18px]" /> : <VolumeX size={16} className="sm:w-[18px] sm:h-[18px] text-red-400" />}
-            </button>
-
-            {/* Demo Reset */}
-            <button
-              onClick={resetAllDemoData}
-              className="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all cursor-pointer hidden md:block"
-              title="Reset Demo Playground Data"
-            >
-              <RotateCcw size={16} />
-            </button>
-          </div>
         </div>
       </div>
     </header>

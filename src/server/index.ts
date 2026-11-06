@@ -7,6 +7,7 @@ import { gamificationRoutes } from './routes/gamificationRoutes';
 import { rpgRoutes } from './routes/rpgRoutes';
 import { syncRoutes } from './routes/syncRoutes';
 import { integrationRoutes } from './routes/integrationRoutes';
+import { authRoutes } from './routes/authRoutes';
 
 const app = new Hono<{ Bindings: ServerEnv }>();
 
@@ -29,14 +30,23 @@ app.get('/api/health', (c) => {
 });
 
 // Route Handlers
+app.route('/api/v1/auth', authRoutes);
 app.route('/api/v1/schedule', scheduleRoutes);
 app.route('/api/v1/gamification', gamificationRoutes);
 app.route('/api/v1/rpg', rpgRoutes);
 app.route('/api/v1/sync', syncRoutes);
 app.route('/api/v1', integrationRoutes);
 
-// Global 404 & Error Handler
-app.notFound((c) => {
+// API 404 Handler
+app.all('/api/*', (c) => {
+  return c.json({ success: false, error: 'API Endpoint Not Found' }, 404);
+});
+
+// Fallback all web requests to Cloudflare Workers Static Assets (SPA)
+app.all('*', async (c) => {
+  if (c.env?.ASSETS) {
+    return c.env.ASSETS.fetch(c.req.raw);
+  }
   return c.json({ success: false, error: 'Endpoint Not Found' }, 404);
 });
 

@@ -25,44 +25,4 @@
   border-bottom-width: 0px;
 }
 
-/* Custom Print Stylesheet for French-Fold Zine & Notebook Inserts */
-@media print {
-  @page {
-    margin: 0.5cm;
-    size: auto;
-  }
-
-  body {
-    background: #FFFFFF !important;
-    color: #000000 !important;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
-  }
-
-  /* Hide app navigation and HUD headers */
-  header,
-  aside,
-  nav,
-  button,
-  .print\:hidden {
-    display: none !important;
-  }
-
-  /* Unhide printable modal sheet */
-  .print\:static {
-    position: static !important;
-    background: transparent !important;
-  }
-
-  .print\:border-none {
-    border: none !important;
-  }
-
-  .print\:p-0 {
-    padding: 0 !important;
-  }
-
-  .print\:shadow-none {
-    box-shadow: none !important;
-  }
-}
 

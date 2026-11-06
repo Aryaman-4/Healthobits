@@ -222,33 +222,36 @@ class SoundEffects {
       if (!this.ctx) return;
       const now = this.ctx.currentTime;
       const chords = [
-        { freqs: [523.25, 659.25, 783.99], time: 0 },       // C maj
-        { freqs: [587.33, 739.99, 880.00], time: 0.18 },    // D maj
-        { freqs: [659.25, 830.61, 987.77], time: 0.36 },    // E maj
-        { freqs: [783.99, 987.77, 1174.66, 1567.98], time: 0.56, duration: 1.2 } // G maj big
+        [523.25, 659.25, 783.99], // C major
+        [587.33, 739.99, 880.00], // D major
+        [659.25, 830.61, 987.77], // E major
+        [783.99, 987.77, 1174.66, 1567.98] // G major triumph!
       ];
 
-      chords.forEach(chord => {
-        const dur = chord.duration || 0.25;
-        chord.freqs.forEach(freq => {
+      chords.forEach((chord, step) => {
+        chord.forEach(freq => {
           if (!this.ctx) return;
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'triangle';
-          osc.frequency.setValueAtTime(freq, now + chord.time);
+          osc.frequency.setValueAtTime(freq, now + step * 0.16);
 
-          gain.gain.setValueAtTime(0.2, now + chord.time);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + chord.time + dur);
+          gain.gain.setValueAtTime(0.2, now + step * 0.16);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + step * 0.16 + 0.6);
 
           osc.connect(gain);
           gain.connect(this.ctx.destination);
-          osc.start(now + chord.time);
-          osc.stop(now + chord.time + dur);
+          osc.start(now + step * 0.16);
+          osc.stop(now + step * 0.16 + 0.6);
         });
       });
     } catch {
       // Ignore
     }
+  }
+
+  public playFanfare() {
+    this.playLevelUp();
   }
 }
 
