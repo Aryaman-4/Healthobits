@@ -47,14 +47,16 @@ export const BottomNav: React.FC = () => {
           )}
         </button>
 
-        {/* Center Button: Mauve Circle (+) for DATA DROP */}
+        {/* Center Button: Mauve Circle (+) for DATA DROP PAGE */}
         <button
           onClick={() => {
             sound.playTap();
-            openDataDropModal();
+            setActiveTab('datadrop');
           }}
-          className="w-12 h-12 rounded-full bg-[#937485] hover:bg-[#836475] text-white flex items-center justify-center shadow-md cursor-pointer transition-all active:scale-95"
-          title="Data Drop: Quick capture insight, habit, or problem"
+          className={`w-12 h-12 rounded-full bg-[#937485] hover:bg-[#836475] text-white flex items-center justify-center shadow-md cursor-pointer transition-all active:scale-95 ${
+            currentTab === 'datadrop' ? 'ring-4 ring-[#937485]/35 scale-105 shadow-lg' : ''
+          }`}
+          title="Data Drop: Real-time insights, habits, and notes"
         >
           <Plus size={24} strokeWidth={2.5} />
         </button>

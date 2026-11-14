@@ -17,11 +17,12 @@ import { sound } from '../../utils/audio';
 export const AccountSettingsTab: React.FC = () => {
   const {
     state,
+    setActiveTab,
     logoutUser,
     toggleSound,
     openOnboarding,
     openSherlockModal,
-    openDataDropModal,
+    openAnchorModal,
     openSundayResetModal
   } = useAttackMode();
 
@@ -147,6 +148,17 @@ export const AccountSettingsTab: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs font-semibold">
           <button
+            onClick={openAnchorModal}
+            className="p-3.5 rounded-2xl bg-[#EEF0F6]/80 hover:bg-[#EEF0F6] text-slate-800 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
+          >
+            <span className="text-base">⚓</span>
+            <div>
+              <div className="font-bold">Anchor Mode Sanctuary</div>
+              <div className="text-[11px] text-slate-500 font-normal">Minimum baseline for when you're out of the zone</div>
+            </div>
+          </button>
+
+          <button
             onClick={openSherlockModal}
             className="p-3.5 rounded-2xl bg-[#EEF0F6]/80 hover:bg-[#EEF0F6] text-slate-800 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
           >
@@ -158,12 +170,12 @@ export const AccountSettingsTab: React.FC = () => {
           </button>
 
           <button
-            onClick={openDataDropModal}
+            onClick={() => setActiveTab('datadrop')}
             className="p-3.5 rounded-2xl bg-[#EEF0F6]/80 hover:bg-[#EEF0F6] text-slate-800 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
           >
             <span className="text-base">💡</span>
             <div>
-              <div className="font-bold">Data Drop Notes</div>
+              <div className="font-bold">Data Drop Notes & Export</div>
               <div className="text-[11px] text-slate-500 font-normal">Filterable habit & insight logs ({state.dataDrops.length})</div>
             </div>
           </button>
@@ -181,7 +193,7 @@ export const AccountSettingsTab: React.FC = () => {
 
           <button
             onClick={openOnboarding}
-            className="p-3.5 rounded-2xl bg-[#EEF0F6]/80 hover:bg-[#EEF0F6] text-slate-800 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
+            className="p-3.5 rounded-2xl bg-[#EEF0F6]/80 hover:bg-[#EEF0F6] text-slate-800 flex items-center gap-2.5 text-left transition-colors cursor-pointer sm:col-span-2"
           >
             <span className="text-base">📘</span>
             <div>

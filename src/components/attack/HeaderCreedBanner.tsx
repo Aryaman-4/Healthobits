@@ -8,7 +8,7 @@ export const HeaderCreedBanner: React.FC = () => {
     state,
     nextCreed,
     openOnboarding,
-    toggleAnchorMode
+    openAnchorModal
   } = useAttackMode();
 
   const currentCreed = CREED_MANTRAS[state.activeCreedIndex];
@@ -43,15 +43,16 @@ export const HeaderCreedBanner: React.FC = () => {
           </button>
 
           <button
-            onClick={toggleAnchorMode}
-            className={`px-2 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+            onClick={openAnchorModal}
+            className={`px-2 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 ${
               state.anchorModeActive
-                ? 'bg-amber-500 text-white shadow-2xs'
+                ? 'bg-[#78909C] text-white shadow-2xs'
                 : 'text-slate-500 hover:text-slate-800 bg-slate-50'
             }`}
-            title="Anchor Mode"
+            title="Open Anchor Mode (Out of the Zone)"
           >
-            {state.anchorModeActive ? 'Anchor: On' : 'Anchor'}
+            <span>⚓</span>
+            <span>Anchor</span>
           </button>
         </div>
       </div>

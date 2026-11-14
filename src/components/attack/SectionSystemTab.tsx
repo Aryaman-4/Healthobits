@@ -27,6 +27,7 @@ export const SectionSystemTab: React.FC = () => {
     deleteSectionTask,
     openSherlockModal,
     openSundayResetModal,
+    openAnchorModal,
     metrics
   } = useAttackMode();
 
@@ -71,40 +72,20 @@ export const SectionSystemTab: React.FC = () => {
   const strokeDashoffset = circumference - (todayPct / 100) * circumference;
 
   return (
-    <div className="max-w-md mx-auto sm:max-w-4xl px-4 sm:px-6 py-5 space-y-5 font-sans">
+    <div className="max-w-md mx-auto sm:max-w-4xl px-3.5 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5 font-sans w-full overflow-x-hidden">
       {/* 1. Beginner Guide Card (Collapsible) */}
       <BeginnerGuideCard />
 
-      {/* 2. Top Header: Date, Quick Buttons & View Switcher */}
-      <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-        <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
-          <Calendar size={14} className="text-[#937485]" />
-          <span>
-            {activeDay === currentTodayDay ? 'Today, ' : `${activeDay}, `}
-            {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Sherlock Protocol (When You Mess Up) Trigger Button */}
-          <button
-            onClick={openSherlockModal}
-            className="px-2.5 py-1 rounded-xl bg-[#ECA172]/15 hover:bg-[#ECA172]/25 text-[#D17E49] text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
-            title="Sherlock Holmes Contingency Protocol (When You Mess Up)"
-          >
-            <span>🔍</span>
-            <span className="hidden sm:inline">Come Here: Reset</span>
-          </button>
-
-          {/* Sunday Reset Trigger Button */}
-          <button
-            onClick={openSundayResetModal}
-            className="px-2.5 py-1 rounded-xl bg-[#937485]/15 hover:bg-[#937485]/25 text-[#937485] text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
-            title="Sunday Weekly Review & New Week Setup"
-          >
-            <span>🌅</span>
-            <span className="hidden sm:inline">Sunday Reset</span>
-          </button>
+      {/* 2. Responsive Top Header: Date, View Switcher & Quick Protocol Triggers */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+          <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
+            <Calendar size={14} className="text-[#937485]" />
+            <span>
+              {activeDay === currentTodayDay ? 'Today, ' : `${activeDay}, `}
+              {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </span>
+          </div>
 
           {/* Day / Week View Switcher */}
           <div className="flex bg-white rounded-xl p-0.5 shadow-2xs border border-slate-200 text-[11px] font-semibold">
@@ -126,25 +107,61 @@ export const SectionSystemTab: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Quick Protocol Buttons Row (Anchor Mode + Sherlock Protocol + Sunday Reset) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+          {/* Anchor Mode (Out of the Zone) Trigger */}
+          <button
+            onClick={openAnchorModal}
+            className="px-2.5 py-1.5 rounded-xl bg-[#78909C]/15 hover:bg-[#78909C]/25 text-[#455A64] text-[11px] font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+            title="Anchor Mode: Minimum viable tasks when you are out of the zone"
+          >
+            <span>⚓</span>
+            <span>Anchor Mode</span>
+            {state.anchorModeActive && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[#7EB982] animate-pulse" />
+            )}
+          </button>
+
+          {/* Sherlock Protocol (When You Mess Up) Trigger Button */}
+          <button
+            onClick={openSherlockModal}
+            className="px-2.5 py-1.5 rounded-xl bg-[#ECA172]/15 hover:bg-[#ECA172]/25 text-[#D17E49] text-[11px] font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+            title="Sherlock Holmes Contingency Protocol (When You Mess Up)"
+          >
+            <span>🔍</span>
+            <span>Come Here</span>
+          </button>
+
+          {/* Sunday Reset Trigger Button */}
+          <button
+            onClick={openSundayResetModal}
+            className="px-2.5 py-1.5 rounded-xl bg-[#937485]/15 hover:bg-[#937485]/25 text-[#937485] text-[11px] font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+            title="Sunday Weekly Review & New Week Setup"
+          >
+            <span>🌅</span>
+            <span>Sunday Reset</span>
+          </button>
+        </div>
       </div>
 
       {/* 3. Today Hero with Circular Progress Ring */}
-      <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 flex items-center justify-between gap-4">
-        <div>
-          <span className="text-xs font-bold text-[#937485] uppercase tracking-wider">
+      <div className="bg-white rounded-3xl p-4 sm:p-5 shadow-xs border border-slate-100 flex items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <span className="text-[11px] sm:text-xs font-bold text-[#937485] uppercase tracking-wider">
             Daily Execution
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-0.5">
+          <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-0.5 truncate">
             {state.viewMode === 'day' ? activeDay : '7-Day Overview'}
           </h1>
-          <p className="text-xs text-slate-500 font-medium mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 sm:mt-1">
             {todayCompleted} of {todayTotal} tasks completed for {activeDay}
           </p>
         </div>
 
         {/* Circular Progress Ring on Today Page */}
-        <div className="relative w-18 h-18 sm:w-20 sm:h-20 flex items-center justify-center shrink-0">
-          <svg className="w-18 h-18 sm:w-20 sm:h-20 transform -rotate-90">
+        <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shrink-0">
+          <svg className="w-16 h-16 sm:w-20 sm:h-20 transform -rotate-90" viewBox="0 0 72 72">
             <circle
               cx="36"
               cy="36"
@@ -175,67 +192,67 @@ export const SectionSystemTab: React.FC = () => {
       </div>
 
       {/* 4. The 4 Stat Cards (Mauve, Peach, Sage Green, Coral) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
         {/* Card 1: Ongoing (Mauve) */}
-        <div className="bg-[#937485] text-white rounded-3xl p-4 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[105px]">
+        <div className="bg-[#937485] text-white rounded-3xl p-3.5 sm:p-4 shadow-xs relative overflow-hidden flex flex-col justify-between min-h-[96px] sm:min-h-[105px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold tracking-wide opacity-90">Ongoing</span>
             <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
               ⚡
             </div>
           </div>
-          <div className="mt-2">
+          <div className="mt-1.5 sm:mt-2">
             <span className="text-2xl sm:text-3xl font-extrabold">{ongoingCount}</span>
             <span className="text-[11px] ml-1 opacity-80">tasks</span>
           </div>
-          <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20" viewBox="0 0 100 40">
+          <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20 pointer-events-none" viewBox="0 0 100 40">
             <path d="M0 20 Q 25 5, 50 20 T 100 20 L 100 40 L 0 40 Z" fill="currentColor" />
           </svg>
         </div>
 
         {/* Card 2: In Process / Today (Peach) */}
-        <div className="bg-[#ECA172] text-white rounded-3xl p-4 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[105px]">
+        <div className="bg-[#ECA172] text-white rounded-3xl p-3.5 sm:p-4 shadow-xs relative overflow-hidden flex flex-col justify-between min-h-[96px] sm:min-h-[105px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold tracking-wide opacity-90">In Process</span>
             <Clock size={15} className="opacity-80" />
           </div>
-          <div className="mt-2">
+          <div className="mt-1.5 sm:mt-2">
             <span className="text-2xl sm:text-3xl font-extrabold">{todayTotal - todayCompleted}</span>
             <span className="text-[11px] ml-1 opacity-80">pending</span>
           </div>
-          <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20" viewBox="0 0 100 40">
+          <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20 pointer-events-none" viewBox="0 0 100 40">
             <path d="M0 25 Q 30 10, 60 25 T 100 25 L 100 40 L 0 40 Z" fill="currentColor" />
           </svg>
         </div>
 
         {/* Card 3: Completed (Sage Green) */}
-        <div className="bg-[#7EB982] text-white rounded-3xl p-4 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[105px]">
+        <div className="bg-[#7EB982] text-white rounded-3xl p-3.5 sm:p-4 shadow-xs relative overflow-hidden flex flex-col justify-between min-h-[96px] sm:min-h-[105px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold tracking-wide opacity-90">Completed</span>
             <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
               <Check size={13} strokeWidth={3} />
             </div>
           </div>
-          <div className="mt-2">
+          <div className="mt-1.5 sm:mt-2">
             <span className="text-2xl sm:text-3xl font-extrabold">{completedCount}</span>
             <span className="text-[11px] ml-1 opacity-80">done</span>
           </div>
-          <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20" viewBox="0 0 100 40">
+          <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20 pointer-events-none" viewBox="0 0 100 40">
             <path d="M0 20 Q 25 35, 50 20 T 100 20 L 100 40 L 0 40 Z" fill="currentColor" />
           </svg>
         </div>
 
         {/* Card 4: High Urgency (Coral) */}
-        <div className="bg-[#E67370] text-white rounded-3xl p-4 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[105px]">
+        <div className="bg-[#E67370] text-white rounded-3xl p-3.5 sm:p-4 shadow-xs relative overflow-hidden flex flex-col justify-between min-h-[96px] sm:min-h-[105px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold tracking-wide opacity-90">P1 SLA</span>
             <Clock size={15} className="opacity-80" />
           </div>
-          <div className="mt-2">
+          <div className="mt-1.5 sm:mt-2">
             <span className="text-2xl sm:text-3xl font-extrabold">{metrics.slaSummary.p1Active}</span>
             <span className="text-[11px] ml-1 opacity-80">critical</span>
           </div>
-          <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20" viewBox="0 0 100 40">
+          <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20 pointer-events-none" viewBox="0 0 100 40">
             <path d="M0 30 Q 30 15, 60 30 T 100 30 L 100 40 L 0 40 Z" fill="currentColor" />
           </svg>
         </div>
@@ -388,18 +405,18 @@ export const SectionSystemTab: React.FC = () => {
                   {/* Inline Task Add */}
                   <form
                     onSubmit={e => handleAddTaskSubmit(activeDay, sec.id, e)}
-                    className="pt-2 border-t border-slate-100 flex gap-2"
+                    className="pt-2 border-t border-slate-100 flex gap-2 w-full"
                   >
                     <input
                       type="text"
                       value={inputs[sec.id] || ''}
                       onChange={e => handleInputChange(sec.id, e.target.value)}
                       placeholder={`Add task under ${sec.shortName}...`}
-                      className="flex-1 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#937485] focus:bg-white transition-colors"
+                      className="flex-1 min-w-0 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#937485] focus:bg-white transition-colors"
                     />
                     <button
                       type="submit"
-                      className="px-3.5 py-2 rounded-xl bg-[#937485] hover:bg-[#836475] text-white text-xs font-semibold cursor-pointer transition-colors shadow-2xs"
+                      className="px-3.5 py-2 rounded-xl bg-[#937485] hover:bg-[#836475] text-white text-xs font-semibold cursor-pointer transition-colors shadow-2xs shrink-0"
                     >
                       Add
                     </button>

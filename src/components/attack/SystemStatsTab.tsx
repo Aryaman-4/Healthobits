@@ -46,10 +46,10 @@ export const SystemStatsTab: React.FC = () => {
   const activePoints = chartMode === 'weekly' ? weeklyPoints : monthlyPoints;
 
   // SVG Line Chart coordinates calculation
-  const width = 340;
-  const height = 120;
-  const paddingX = 30;
-  const paddingY = 20;
+  const width = 360;
+  const height = 130;
+  const paddingX = 35;
+  const paddingY = 22;
   const maxVal = Math.max(...activePoints.map(p => p.target), 1);
 
   const coords = activePoints.map((p, idx) => {
@@ -67,7 +67,7 @@ export const SystemStatsTab: React.FC = () => {
     : '';
 
   // Circular Progress Ring Math for Month
-  const monthRadius = 40;
+  const monthRadius = 38;
   const monthCirc = 2 * Math.PI * monthRadius;
   const monthOffset = monthCirc - (monthStats.monthPct / 100) * monthCirc;
 
@@ -91,7 +91,7 @@ export const SystemStatsTab: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto sm:max-w-4xl px-4 sm:px-6 py-5 space-y-6 font-sans">
+    <div className="max-w-md mx-auto sm:max-w-4xl px-3.5 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-6 font-sans w-full overflow-x-hidden">
       {/* 1. Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -154,7 +154,7 @@ export const SystemStatsTab: React.FC = () => {
       </div>
 
       {/* 3. Progress Ring Infographic (Replacing Bar Chart as Requested!) */}
-      <div className="bg-white rounded-3xl p-6 shadow-xs border border-slate-100 space-y-4">
+      <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-xs border border-slate-100 space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div>
             <h3 className="font-bold text-sm text-slate-900">
@@ -169,107 +169,128 @@ export const SystemStatsTab: React.FC = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-center pt-2">
-          {/* Main Month Progress Ring */}
-          <div className="flex flex-col items-center justify-center p-3 text-center sm:border-r border-slate-100">
-            <div className="relative w-24 h-24 flex items-center justify-center">
-              <svg className="w-24 h-24 transform -rotate-90">
-                <circle cx="48" cy="48" r={monthRadius} stroke="#EEF0F6" strokeWidth="8" fill="transparent" />
-                <circle
-                  cx="48"
-                  cy="48"
-                  r={monthRadius}
-                  stroke="#7EB982"
-                  strokeWidth="8"
-                  strokeDasharray={monthCirc}
-                  strokeDashoffset={monthOffset}
-                  strokeLinecap="round"
-                  fill="transparent"
-                  className="transition-all duration-700"
-                />
-              </svg>
-              <div className="absolute text-center">
-                <span className="font-extrabold text-lg text-slate-900 font-mono">
-                  {monthStats.monthPct}%
+        {/* Responsive Progress Ring Layout: Clean Top Card for Month, and 3-Col Grid for Pillars */}
+        <div className="space-y-3 sm:space-y-4 pt-1">
+          {/* Main Month Progress Ring Card */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-[#EEF0F6]/50 border border-slate-100 flex items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+              <div className="relative w-18 h-18 sm:w-20 sm:h-20 flex items-center justify-center shrink-0">
+                <svg className="w-18 h-18 sm:w-20 sm:h-20 transform -rotate-90" viewBox="0 0 96 96">
+                  <circle cx="48" cy="48" r={monthRadius} stroke="#E2E8F0" strokeWidth="8" fill="transparent" />
+                  <circle
+                    cx="48"
+                    cy="48"
+                    r={monthRadius}
+                    stroke="#7EB982"
+                    strokeWidth="8"
+                    strokeDasharray={monthCirc}
+                    strokeDashoffset={monthOffset}
+                    strokeLinecap="round"
+                    fill="transparent"
+                    className="transition-all duration-700"
+                  />
+                </svg>
+                <div className="absolute text-center">
+                  <span className="font-extrabold text-base sm:text-lg text-slate-900 font-mono">
+                    {monthStats.monthPct}%
+                  </span>
+                </div>
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#937485] block">
+                  Monthly Velocity
                 </span>
+                <h4 className="font-bold text-sm sm:text-base text-slate-900 truncate">
+                  Overall Month Target
+                </h4>
+                <p className="text-[11px] text-slate-500 font-medium mt-0.5 truncate">
+                  {monthStats.fourWeekTotalCompleted} of {monthStats.fourWeekTarget} Tasks Completed
+                </p>
               </div>
             </div>
-            <span className="font-bold text-xs text-slate-800 mt-2">Overall Month</span>
-            <span className="text-[10px] text-slate-400 font-medium">
-              {monthStats.fourWeekTotalCompleted} / {monthStats.fourWeekTarget} Tasks
-            </span>
+
+            <div className="flex flex-col items-end shrink-0">
+              <span className={`text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full ${getGradeBadge(monthStats.overallGrade)}`}>
+                Grade {monthStats.overallGrade}
+              </span>
+              <span className="text-[10px] sm:text-[11px] text-slate-400 mt-1 font-mono">4-Week Target</span>
+            </div>
           </div>
 
-          {/* Pillar 1: Rich Ring */}
-          <div className="flex flex-col items-center justify-center p-3 text-center">
-            <div className="relative w-18 h-18 flex items-center justify-center">
-              <svg className="w-18 h-18 transform -rotate-90">
-                <circle cx="36" cy="36" r="26" stroke="#EEF0F6" strokeWidth="6" fill="transparent" />
-                <circle
-                  cx="36"
-                  cy="36"
-                  r="26"
-                  stroke="#937485"
-                  strokeWidth="6"
-                  strokeDasharray={2 * Math.PI * 26}
-                  strokeDashoffset={2 * Math.PI * 26 * (1 - richPct / 100)}
-                  strokeLinecap="round"
-                  fill="transparent"
-                  className="transition-all duration-700"
-                />
-              </svg>
-              <span className="absolute font-bold text-xs text-slate-800 font-mono">{richPct}%</span>
+          {/* 3 Pillar Progress Rings (Side-by-side 3 Columns on mobile and desktop) */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3.5">
+            {/* Pillar 1: Rich Ring */}
+            <div className="bg-slate-50/60 rounded-2xl p-2.5 sm:p-3.5 flex flex-col items-center justify-center text-center border border-slate-100">
+              <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center">
+                <svg className="w-14 h-14 sm:w-16 sm:h-16 transform -rotate-90" viewBox="0 0 72 72">
+                  <circle cx="36" cy="36" r="26" stroke="#E2E8F0" strokeWidth="6" fill="transparent" />
+                  <circle
+                    cx="36"
+                    cy="36"
+                    r="26"
+                    stroke="#937485"
+                    strokeWidth="6"
+                    strokeDasharray={2 * Math.PI * 26}
+                    strokeDashoffset={2 * Math.PI * 26 * (1 - richPct / 100)}
+                    strokeLinecap="round"
+                    fill="transparent"
+                    className="transition-all duration-700"
+                  />
+                </svg>
+                <span className="absolute font-bold text-[11px] sm:text-xs text-slate-800 font-mono">{richPct}%</span>
+              </div>
+              <span className="font-bold text-[11px] sm:text-xs text-slate-800 mt-1.5 truncate w-full">💰 Rich</span>
+              <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium">{allWeekStats.richCompleted} Done</span>
             </div>
-            <span className="font-bold text-xs text-slate-800 mt-2">💰 Rich</span>
-            <span className="text-[10px] text-slate-400">{allWeekStats.richCompleted} Done</span>
-          </div>
 
-          {/* Pillar 2: Muscular Ring */}
-          <div className="flex flex-col items-center justify-center p-3 text-center">
-            <div className="relative w-18 h-18 flex items-center justify-center">
-              <svg className="w-18 h-18 transform -rotate-90">
-                <circle cx="36" cy="36" r="26" stroke="#EEF0F6" strokeWidth="6" fill="transparent" />
-                <circle
-                  cx="36"
-                  cy="36"
-                  r="26"
-                  stroke="#ECA172"
-                  strokeWidth="6"
-                  strokeDasharray={2 * Math.PI * 26}
-                  strokeDashoffset={2 * Math.PI * 26 * (1 - muscularPct / 100)}
-                  strokeLinecap="round"
-                  fill="transparent"
-                  className="transition-all duration-700"
-                />
-              </svg>
-              <span className="absolute font-bold text-xs text-slate-800 font-mono">{muscularPct}%</span>
+            {/* Pillar 2: Muscular Ring */}
+            <div className="bg-slate-50/60 rounded-2xl p-2.5 sm:p-3.5 flex flex-col items-center justify-center text-center border border-slate-100">
+              <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center">
+                <svg className="w-14 h-14 sm:w-16 sm:h-16 transform -rotate-90" viewBox="0 0 72 72">
+                  <circle cx="36" cy="36" r="26" stroke="#E2E8F0" strokeWidth="6" fill="transparent" />
+                  <circle
+                    cx="36"
+                    cy="36"
+                    r="26"
+                    stroke="#ECA172"
+                    strokeWidth="6"
+                    strokeDasharray={2 * Math.PI * 26}
+                    strokeDashoffset={2 * Math.PI * 26 * (1 - muscularPct / 100)}
+                    strokeLinecap="round"
+                    fill="transparent"
+                    className="transition-all duration-700"
+                  />
+                </svg>
+                <span className="absolute font-bold text-[11px] sm:text-xs text-slate-800 font-mono">{muscularPct}%</span>
+              </div>
+              <span className="font-bold text-[11px] sm:text-xs text-slate-800 mt-1.5 truncate w-full">💪 Muscular</span>
+              <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium">{allWeekStats.muscularCompleted} Done</span>
             </div>
-            <span className="font-bold text-xs text-slate-800 mt-2">💪 Muscular</span>
-            <span className="text-[10px] text-slate-400">{allWeekStats.muscularCompleted} Done</span>
-          </div>
 
-          {/* Pillar 3: Intelligent Ring */}
-          <div className="flex flex-col items-center justify-center p-3 text-center">
-            <div className="relative w-18 h-18 flex items-center justify-center">
-              <svg className="w-18 h-18 transform -rotate-90">
-                <circle cx="36" cy="36" r="26" stroke="#EEF0F6" strokeWidth="6" fill="transparent" />
-                <circle
-                  cx="36"
-                  cy="36"
-                  r="26"
-                  stroke="#7EB982"
-                  strokeWidth="6"
-                  strokeDasharray={2 * Math.PI * 26}
-                  strokeDashoffset={2 * Math.PI * 26 * (1 - intelligentPct / 100)}
-                  strokeLinecap="round"
-                  fill="transparent"
-                  className="transition-all duration-700"
-                />
-              </svg>
-              <span className="absolute font-bold text-xs text-slate-800 font-mono">{intelligentPct}%</span>
+            {/* Pillar 3: Intelligent Ring */}
+            <div className="bg-slate-50/60 rounded-2xl p-2.5 sm:p-3.5 flex flex-col items-center justify-center text-center border border-slate-100">
+              <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center">
+                <svg className="w-14 h-14 sm:w-16 sm:h-16 transform -rotate-90" viewBox="0 0 72 72">
+                  <circle cx="36" cy="36" r="26" stroke="#E2E8F0" strokeWidth="6" fill="transparent" />
+                  <circle
+                    cx="36"
+                    cy="36"
+                    r="26"
+                    stroke="#7EB982"
+                    strokeWidth="6"
+                    strokeDasharray={2 * Math.PI * 26}
+                    strokeDashoffset={2 * Math.PI * 26 * (1 - intelligentPct / 100)}
+                    strokeLinecap="round"
+                    fill="transparent"
+                    className="transition-all duration-700"
+                  />
+                </svg>
+                <span className="absolute font-bold text-[11px] sm:text-xs text-slate-800 font-mono">{intelligentPct}%</span>
+              </div>
+              <span className="font-bold text-[11px] sm:text-xs text-slate-800 mt-1.5 truncate w-full">🧠 Intelligent</span>
+              <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium">{allWeekStats.intelligentCompleted} Done</span>
             </div>
-            <span className="font-bold text-xs text-slate-800 mt-2">🧠 Intelligent</span>
-            <span className="text-[10px] text-slate-400">{allWeekStats.intelligentCompleted} Done</span>
           </div>
         </div>
       </div>
@@ -314,8 +335,8 @@ export const SystemStatsTab: React.FC = () => {
         </div>
 
         {/* SVG Smooth Line Chart with Gradient Fill */}
-        <div className="pt-2">
-          <svg className="w-full h-36 overflow-visible" viewBox={`0 0 ${width} ${height}`}>
+        <div className="pt-2 w-full overflow-hidden">
+          <svg className="w-full h-36 overflow-visible" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#937485" stopOpacity="0.25" />
@@ -354,7 +375,7 @@ export const SystemStatsTab: React.FC = () => {
                 <circle cx={c.x} cy={c.y} r="4.5" fill="#937485" stroke="#FFFFFF" strokeWidth="2" />
                 <text
                   x={c.x}
-                  y={c.y - 10}
+                  y={c.y - 8}
                   textAnchor="middle"
                   className="text-[10px] font-bold fill-slate-700 font-mono"
                 >
@@ -362,7 +383,7 @@ export const SystemStatsTab: React.FC = () => {
                 </text>
                 <text
                   x={c.x}
-                  y={height - 5}
+                  y={height - 6}
                   textAnchor="middle"
                   className="text-[10px] font-semibold fill-slate-400"
                 >
@@ -375,7 +396,7 @@ export const SystemStatsTab: React.FC = () => {
       </div>
 
       {/* 5. Multi-Month History Log (Requirement 1: Total tasks done in a month saved) */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-100 space-y-3.5">
+      <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-xs border border-slate-100 space-y-3.5">
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div>
             <h3 className="font-bold text-sm text-slate-900">
@@ -394,21 +415,21 @@ export const SystemStatsTab: React.FC = () => {
           {monthStats.monthlyHistory.map(m => (
             <div
               key={m.monthKey}
-              className="p-3.5 rounded-2xl bg-slate-50/70 border border-slate-100 flex items-center justify-between gap-3 text-xs"
+              className="p-3 sm:p-3.5 rounded-2xl bg-slate-50/70 border border-slate-100 flex items-center justify-between gap-2.5 sm:gap-3 text-xs"
             >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-700">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-700 shrink-0">
                   📅
                 </div>
-                <div>
-                  <span className="font-bold text-slate-900">{m.monthName}</span>
-                  <div className="text-[11px] text-slate-400">
-                    {m.completedTasks} of {m.targetTasks} tasks completed ({m.performancePct}%)
+                <div className="min-w-0 flex-1">
+                  <span className="font-bold text-slate-900 block truncate">{m.monthName}</span>
+                  <div className="text-[10px] sm:text-[11px] text-slate-400 truncate">
+                    {m.completedTasks} of {m.targetTasks} tasks ({m.performancePct}%)
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getGradeBadge(m.grade)}`}>
                   Grade {m.grade}
                 </span>

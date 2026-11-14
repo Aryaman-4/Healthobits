@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from '
 import confetti from 'canvas-confetti';
 import {
   AttackModeState,
+  AttackModeTab,
   SectionTask,
   SLATicket,
   MonthlyTarget,
@@ -9,6 +10,7 @@ import {
   MonthlyHistoryRecord,
   DataDropEntry,
   DataDropType,
+  AnchorHabit,
   SherlockCaseLog,
   UserAccount,
   DayOfWeek,
@@ -34,10 +36,16 @@ interface AttackModeContextType {
   loginAsGuest: () => void;
   logoutUser: () => void;
   // Navigation & View
-  setActiveTab: (tab: 'sections' | 'stats' | 'sla' | 'account') => void;
+  setActiveTab: (tab: AttackModeTab) => void;
   setSelectedDayOfWeek: (day: DayOfWeek) => void;
   setViewMode: (mode: 'day' | 'weekGrid') => void;
   toggleAnchorMode: () => void;
+  openAnchorModal: () => void;
+  closeAnchorModal: () => void;
+  toggleAnchorHabit: (id: string) => void;
+  addAnchorHabit: (title: string, icon?: string) => void;
+  deleteAnchorHabit: (id: string) => void;
+  resetAnchorHabits: () => void;
   nextCreed: () => void;
   setDailyQuotaX: (x: number) => void;
   // Section Tasks
@@ -84,6 +92,7 @@ interface AttackModeContextType {
   // Exporters
   exportMarkdown: () => void;
   exportCSV: () => void;
+  exportDataDropMarkdown: (category?: string) => void;
   // Metrics
   metrics: {
     currentDayStats: {
@@ -123,7 +132,17 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        const initial = getInitialAttackModeState();
+        return {
+          ...initial,
+          ...parsed,
+          anchorHabits: parsed.anchorHabits?.length ? parsed.anchorHabits : initial.anchorHabits,
+          isAnchorModalOpen: false,
+          isDataDropModalOpen: false,
+          isSherlockModalOpen: false,
+          isSundayResetModalOpen: false
+        };
       }
     } catch (e) {
       console.warn('Failed to parse state from localStorage:', e);
@@ -273,7 +292,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   // Navigation
-  const setActiveTab = (tab: 'sections' | 'stats' | 'sla' | 'account') => {
+  const setActiveTab = (tab: AttackModeTab) => {
     sound.playTap();
     setState(prev => ({ ...prev, activeTab: tab }));
   };
@@ -291,6 +310,68 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const toggleAnchorMode = () => {
     sound.playLevelUp();
     setState(prev => ({ ...prev, anchorModeActive: !prev.anchorModeActive }));
+  };
+
+  const openAnchorModal = () => {
+    sound.playTap();
+    setState(prev => ({ ...prev, isAnchorModalOpen: true }));
+  };
+
+  const closeAnchorModal = () => {
+    setState(prev => ({ ...prev, isAnchorModalOpen: false }));
+  };
+
+  const toggleAnchorHabit = (id: string) => {
+    sound.playCheck();
+    setState(prev => {
+      const nextHabits = prev.anchorHabits.map(h => {
+        if (h.id === id) {
+          const nextVal = !h.isCompleted;
+          if (nextVal) {
+            confetti({
+              particleCount: 25,
+              spread: 45,
+              origin: { y: 0.8 },
+              colors: ['#78909C', '#7EB982', '#937485']
+            });
+          }
+          return { ...h, isCompleted: nextVal };
+        }
+        return h;
+      });
+      return { ...prev, anchorHabits: nextHabits, anchorModeActive: true };
+    });
+  };
+
+  const addAnchorHabit = (title: string, icon: string = '⚓') => {
+    if (!title.trim()) return;
+    sound.playTap();
+    const newHabit: AnchorHabit = {
+      id: `anchor-${Date.now()}`,
+      title: title.trim(),
+      icon,
+      isCompleted: false
+    };
+    setState(prev => ({
+      ...prev,
+      anchorHabits: [...prev.anchorHabits, newHabit]
+    }));
+  };
+
+  const deleteAnchorHabit = (id: string) => {
+    sound.playTap();
+    setState(prev => ({
+      ...prev,
+      anchorHabits: prev.anchorHabits.filter(h => h.id !== id)
+    }));
+  };
+
+  const resetAnchorHabits = () => {
+    sound.playTap();
+    setState(prev => ({
+      ...prev,
+      anchorHabits: prev.anchorHabits.map(h => ({ ...h, isCompleted: false }))
+    }));
   };
 
   const nextCreed = () => {
@@ -785,6 +866,71 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     URL.revokeObjectURL(url);
   };
 
+  const exportDataDropMarkdown = (category?: string) => {
+    sound.playTap();
+    const today = getTodayDateString();
+    const isSingleCategory = category && category !== 'all';
+
+    let md = '';
+    let filename = '';
+
+    if (isSingleCategory) {
+      const typeLabel = category.replace('_', ' ').toUpperCase();
+      const filtered = state.dataDrops.filter(d => d.type === category);
+      filename = `DataDrop_${category}_${today}.md`;
+
+      md += `# ⚡ ATTACK MODE — Data Drop Notes: ${typeLabel}\n`;
+      md += `*Exported: ${new Date().toLocaleString()}*\n`;
+      md += `*Total Entries: ${filtered.length}*\n\n`;
+      md += `---\n\n`;
+
+      if (filtered.length === 0) {
+        md += `*(No notes recorded under this category yet)*\n`;
+      } else {
+        filtered.forEach((d, idx) => {
+          md += `### ${idx + 1}. [${d.createdAt}]\n`;
+          md += `${d.content}\n\n`;
+        });
+      }
+    } else {
+      filename = `DataDrop_All_Categories_${today}.md`;
+      md += `# ⚡ ATTACK MODE — Master Data Drop Repository\n`;
+      md += `*Exported: ${new Date().toLocaleString()}*\n`;
+      md += `*Total Captured Drops: ${state.dataDrops.length}*\n\n`;
+      md += `---\n\n`;
+
+      const categories: { type: DataDropType; label: string; icon: string }[] = [
+        { type: 'insight', label: 'Insights & Epiphanies', icon: '💡' },
+        { type: 'bad_habit', label: 'Bad Habits & Triggers', icon: '⚠️' },
+        { type: 'behavior', label: 'Behavioral Patterns', icon: '🔄' },
+        { type: 'thought_process', label: 'Thought Processes & Mental Models', icon: '🧠' },
+        { type: 'problem', label: 'Problems & Friction Points', icon: '🧩' }
+      ];
+
+      categories.forEach(cat => {
+        const catDrops = state.dataDrops.filter(d => d.type === cat.type);
+        md += `## ${cat.icon} ${cat.label} (${catDrops.length})\n\n`;
+        if (catDrops.length === 0) {
+          md += `*(None logged yet)*\n\n`;
+        } else {
+          catDrops.forEach((d, idx) => {
+            md += `### ${idx + 1}. [${d.createdAt}]\n`;
+            md += `${d.content}\n\n`;
+          });
+        }
+        md += `---\n\n`;
+      });
+    }
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   // Metrics
   const metrics = useMemo(() => {
     const currentDayTasks = state.sectionTasks.filter(t => t.dayOfWeek === state.selectedDayOfWeek);
@@ -858,6 +1004,12 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setSelectedDayOfWeek,
         setViewMode,
         toggleAnchorMode,
+        openAnchorModal,
+        closeAnchorModal,
+        toggleAnchorHabit,
+        addAnchorHabit,
+        deleteAnchorHabit,
+        resetAnchorHabits,
         nextCreed,
         setDailyQuotaX,
         addSectionTask,
@@ -889,6 +1041,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setMutationLog,
         exportMarkdown,
         exportCSV,
+        exportDataDropMarkdown,
         metrics
       }}
     >

@@ -84,6 +84,14 @@ export interface DataDropEntry {
   createdAt: string;
 }
 
+export interface AnchorHabit {
+  id: string;
+  title: string;
+  icon: string;
+  isCompleted: boolean;
+  notes?: string;
+}
+
 export interface SherlockCaseLog {
   id: string;
   createdAt: string;
@@ -103,11 +111,15 @@ export interface UserAccount {
   lastSyncedAt?: string;
 }
 
+export type AttackModeTab = 'sections' | 'stats' | 'sla' | 'account' | 'datadrop';
+
 export interface AttackModeState {
   account: UserAccount;
   dailyQuotaX: number;
   anchorModeActive: boolean;
-  activeTab: 'sections' | 'stats' | 'sla' | 'account';
+  isAnchorModalOpen: boolean;
+  anchorHabits: AnchorHabit[];
+  activeTab: AttackModeTab;
   selectedDayOfWeek: DayOfWeek;
   viewMode: 'day' | 'weekGrid';
   sectionTasks: SectionTask[];

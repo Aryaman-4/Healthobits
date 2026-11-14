@@ -8,6 +8,8 @@ import { DeadlineSLATab } from './components/attack/DeadlineSLATab';
 import { AccountSettingsTab } from './components/attack/AccountSettingsTab';
 import { OnboardingWizardModal } from './components/attack/OnboardingAndGuide';
 import { DataDropModal } from './components/attack/DataDropModal';
+import { DataDropPage } from './components/attack/DataDropPage';
+import { AnchorModeModal } from './components/attack/AnchorModeModal';
 import { SherlockProtocolModal } from './components/attack/SherlockProtocolModal';
 import { SundayResetModal } from './components/attack/SundayResetModal';
 import { BottomNav } from './components/attack/BottomNav';
@@ -27,6 +29,7 @@ const AppContent: React.FC = () => {
 
       {/* 2. Modals & Protocols */}
       <OnboardingWizardModal />
+      <AnchorModeModal />
       <DataDropModal />
       <SherlockProtocolModal />
       <SundayResetModal />
@@ -34,6 +37,7 @@ const AppContent: React.FC = () => {
       {/* 3. Main Views */}
       <main className="flex-1">
         {state.activeTab === 'sections' && <SectionSystemTab />}
+        {state.activeTab === 'datadrop' && <DataDropPage />}
         {state.activeTab === 'stats' && <SystemStatsTab />}
         {state.activeTab === 'sla' && <DeadlineSLATab />}
         {state.activeTab === 'account' && <AccountSettingsTab />}

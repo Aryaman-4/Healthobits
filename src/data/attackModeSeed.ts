@@ -6,6 +6,7 @@ import {
   WeekScorecard,
   MonthlyHistoryRecord,
   DataDropEntry,
+  AnchorHabit,
   SherlockCaseLog,
   DayOfWeek
 } from '../types/attackMode';
@@ -222,6 +223,39 @@ export const INITIAL_MONTHLY_HISTORY: MonthlyHistoryRecord[] = [
   }
 ];
 
+export const DEFAULT_ANCHOR_HABITS: AnchorHabit[] = [
+  {
+    id: 'anchor-1',
+    title: 'Listen to at least 1 podcast or audio lesson',
+    icon: '🎧',
+    isCompleted: false
+  },
+  {
+    id: 'anchor-2',
+    title: 'Draw or sketch something for 5 minutes',
+    icon: '🎨',
+    isCompleted: false
+  },
+  {
+    id: 'anchor-3',
+    title: 'Mini workout (10 pushups, stretch, or light walk)',
+    icon: '🏃‍♂️',
+    isCompleted: false
+  },
+  {
+    id: 'anchor-4',
+    title: 'Read just 1 page of a book',
+    icon: '📖',
+    isCompleted: false
+  },
+  {
+    id: 'anchor-5',
+    title: '5 deep breaths / 3-minute silent reset',
+    icon: '🧘',
+    isCompleted: false
+  }
+];
+
 export const getInitialAttackModeState = (): AttackModeState => {
   const today = getTodayDateString();
   const currentDayOfWeek = getTodayDayOfWeek();
@@ -377,6 +411,8 @@ export const getInitialAttackModeState = (): AttackModeState => {
     },
     dailyQuotaX: 5,
     anchorModeActive: false,
+    isAnchorModalOpen: false,
+    anchorHabits: DEFAULT_ANCHOR_HABITS,
     activeTab: 'sections',
     selectedDayOfWeek: currentDayOfWeek,
     viewMode: 'day',
