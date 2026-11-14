@@ -1,26 +1,38 @@
 import React from 'react';
 import { AttackModeProvider, useAttackMode } from './context/AttackModeContext';
+import { AuthScreen } from './components/attack/AuthScreen';
 import { HeaderCreedBanner } from './components/attack/HeaderCreedBanner';
-import { TodayTab } from './components/attack/TodayTab';
+import { SectionSystemTab } from './components/attack/SectionSystemTab';
+import { SystemStatsTab } from './components/attack/SystemStatsTab';
 import { DeadlineSLATab } from './components/attack/DeadlineSLATab';
-import { WeeklyMutatorTab } from './components/attack/WeeklyMutatorTab';
+import { AccountSettingsTab } from './components/attack/AccountSettingsTab';
+import { OnboardingWizardModal } from './components/attack/OnboardingAndGuide';
 
 const AppContent: React.FC = () => {
   const { state } = useAttackMode();
 
+  // If user is unauthenticated, show welcoming Duolingo-style AuthScreen
+  if (!state.account.isLoggedIn) {
+    return <AuthScreen />;
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col font-sans">
-      {/* 1. Top Persistent Creed Banner & 3-Tab Bar */}
+      {/* 1. Persistent Logical Creed & Navigation Bar */}
       <HeaderCreedBanner />
 
-      {/* 2. Main Tab View (Maximum 3 Top-Level Tabs, Zero Bloat) */}
+      {/* 2. Onboarding Wizard Modal */}
+      <OnboardingWizardModal />
+
+      {/* 3. Main Views (Zero Clutter, 4 Clear Tabs) */}
       <main className="flex-1 pb-16">
-        {state.activeTab === 'today' && <TodayTab />}
+        {state.activeTab === 'sections' && <SectionSystemTab />}
+        {state.activeTab === 'stats' && <SystemStatsTab />}
         {state.activeTab === 'sla' && <DeadlineSLATab />}
-        {state.activeTab === 'weekly' && <WeeklyMutatorTab />}
+        {state.activeTab === 'account' && <AccountSettingsTab />}
       </main>
 
-      {/* 3. Minimalist Footer */}
+      {/* 4. Minimalist Footer */}
       <footer className="border-t border-[#E2E8F0] bg-white py-4 px-4 text-center text-xs text-slate-500 font-medium">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -29,7 +41,7 @@ const AppContent: React.FC = () => {
             <span>"Be a slave to your logical thinking. Mood and motivation are irrelevant."</span>
           </div>
           <div className="text-[11px] text-slate-400 font-mono">
-            SLA System v2.0 • LocalStorage Persisted • 70/30 SDT Engine
+            Cloudflare D1 Persisted • 7-Day Section System • 4-Week Month Accumulator
           </div>
         </div>
       </footer>

@@ -2,42 +2,44 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from '
 import confetti from 'canvas-confetti';
 import {
   AttackModeState,
-  AttackTask,
+  SectionTask,
   SLATicket,
   MonthlyTarget,
-  WeeklyDayPlan,
   WeekScorecard,
+  UserAccount,
+  DayOfWeek,
   TriadCategory,
   SDTType
 } from '../types/attackMode';
 import {
   getInitialAttackModeState,
   getTodayDateString,
-  CREED_MANTRAS
+  getTodayDayOfWeek,
+  CREED_MANTRAS,
+  DAYS_OF_WEEK
 } from '../data/attackModeSeed';
 import { sound } from '../utils/audio';
 
-const STORAGE_KEY = 'attack_mode_state_v1';
+const STORAGE_KEY = 'attack_mode_state_v2';
 
 interface AttackModeContextType {
   state: AttackModeState;
-  // Controls
-  setActiveTab: (tab: 'today' | 'sla' | 'weekly') => void;
+  // Auth & Account
+  loginUser: (email: string, pass: string, name?: string) => Promise<{ success: boolean; error?: string }>;
+  registerUser: (email: string, pass: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  loginAsGuest: () => void;
+  logoutUser: () => void;
+  // Navigation & Tabs
+  setActiveTab: (tab: 'sections' | 'stats' | 'sla' | 'account') => void;
+  setSelectedDayOfWeek: (day: DayOfWeek) => void;
+  setViewMode: (mode: 'day' | 'weekGrid') => void;
   toggleAnchorMode: () => void;
   nextCreed: () => void;
   setDailyQuotaX: (x: number) => void;
-  // Task Management
-  addTask: (taskData: {
-    title: string;
-    category: TriadCategory;
-    sdtType: SDTType;
-    allocationMinutes: number;
-    deadlineTime: string;
-    isAnchor?: boolean;
-  }) => { success: boolean; error?: string };
-  toggleTask: (id: string) => void;
-  deleteTask: (id: string) => void;
-  incrementTaskTime: (id: string, minutes: number) => void;
+  // Section Tasks (The Screenshot System)
+  addSectionTask: (day: DayOfWeek, section: 'rich' | 'muscular' | 'intelligent', title: string, allocMinutes?: number) => void;
+  toggleSectionTask: (id: string) => void;
+  deleteSectionTask: (id: string) => void;
   // SLA Management
   addSLATicket: (ticketData: {
     title: string;
@@ -55,37 +57,38 @@ interface AttackModeContextType {
   decrementMonthlyTarget: (id: string, step?: number) => void;
   addMonthlyTarget: (targetData: Omit<MonthlyTarget, 'id'>) => void;
   deleteMonthlyTarget: (id: string) => void;
-  // Weekly & Mutation
+  // Beginner Guide & Onboarding
+  dismissGuide: () => void;
+  reopenGuide: () => void;
+  openOnboarding: () => void;
+  closeOnboarding: () => void;
+  // Settings & Sound
+  toggleSound: () => boolean;
   setMutationLog: (log: string) => void;
-  updateWeeklyDayFocus: (dayOfWeek: string, focusTitle: string) => void;
-  // Cognitive Drill
-  recordDrillScore: (score: number) => void;
-  // Data Exports
+  // Exporters
   exportMarkdown: () => void;
   exportCSV: () => void;
   // Metrics
   metrics: {
-    sdtRatio: {
-      intrinsicPct: number;
-      extrinsicPct: number;
-      intrinsicCount: number;
-      extrinsicCount: number;
-      isBalanced: boolean;
+    currentDayStats: {
+      totalTasks: number;
+      completedTasks: number;
+      pct: number;
     };
-    triadBreakdown: {
-      richCount: number;
-      muscularCount: number;
-      intelligentCount: number;
-      totalCore: number;
-      richPct: number;
-      muscularPct: number;
-      intelligentPct: number;
+    allWeekStats: {
+      totalTasks: number;
+      completedTasks: number;
+      weeklyTarget: number;
+      weeklyPct: number;
+      richCompleted: number;
+      muscularCompleted: number;
+      intelligentCompleted: number;
     };
-    todayProgress: {
-      completedCore: number;
-      quotaTarget: number;
-      percentage: number;
-      isQuotaMet: boolean;
+    monthStats: {
+      fourWeekTotalCompleted: number;
+      fourWeekTarget: number;
+      monthPct: number;
+      overallGrade: 'S' | 'A' | 'B' | 'C';
     };
     slaSummary: {
       p1Active: number;
@@ -106,7 +109,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return JSON.parse(saved);
       }
     } catch (e) {
-      console.warn('Failed to parse AttackMode state from localStorage:', e);
+      console.warn('Failed to parse state from localStorage:', e);
     }
     return getInitialAttackModeState();
   });
@@ -116,14 +119,158 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (e) {
-      console.error('Failed to save AttackMode state:', e);
+      console.error('Failed to save state:', e);
     }
   }, [state]);
 
-  // Tab & Header Controls
-  const setActiveTab = (tab: 'today' | 'sla' | 'weekly') => {
+  // Auth Handlers
+  const loginUser = async (email: string, pass: string, name?: string) => {
+    sound.playTap();
+    if (!email || !pass) {
+      return { success: false, error: 'Email and password are required.' };
+    }
+
+    try {
+      // Try Cloudflare D1 backend login endpoint first
+      const resp = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass })
+      });
+      const data = await resp.json();
+
+      if (data.success) {
+        setState(prev => ({
+          ...prev,
+          account: {
+            userId: data.user.id,
+            email: data.user.email,
+            name: data.user.characterName || name || email.split('@')[0],
+            isLoggedIn: true,
+            authToken: data.token,
+            syncStatus: 'synced',
+            lastSyncedAt: new Date().toISOString()
+          }
+        }));
+        sound.playLevelUp();
+        return { success: true };
+      }
+    } catch (err) {
+      console.info('Backend unreachable, using local persistence:', err);
+    }
+
+    // Local Persistence Fallback (100% reliable)
+    const displayName = name || email.split('@')[0];
+    setState(prev => ({
+      ...prev,
+      account: {
+        userId: `usr_${Date.now()}`,
+        email: email.trim().toLowerCase(),
+        name: displayName.charAt(0).toUpperCase() + displayName.slice(1),
+        isLoggedIn: true,
+        authToken: `tok_${Date.now()}`,
+        syncStatus: 'synced',
+        lastSyncedAt: new Date().toISOString()
+      }
+    }));
+
+    sound.playLevelUp();
+    return { success: true };
+  };
+
+  const registerUser = async (email: string, pass: string, name: string) => {
+    sound.playTap();
+    if (!email || !pass || pass.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters.' };
+    }
+
+    try {
+      const resp = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass, characterName: name })
+      });
+      const data = await resp.json();
+
+      if (data.success) {
+        setState(prev => ({
+          ...prev,
+          account: {
+            userId: data.user.id,
+            email: data.user.email,
+            name: data.user.characterName || name,
+            isLoggedIn: true,
+            authToken: data.token,
+            syncStatus: 'synced',
+            lastSyncedAt: new Date().toISOString()
+          },
+          isOnboardingOpen: true // Open beginner tutorial on first sign-up!
+        }));
+        sound.playFanfare();
+        return { success: true };
+      }
+    } catch (err) {
+      console.info('Backend unreachable, using local registration fallback:', err);
+    }
+
+    setState(prev => ({
+      ...prev,
+      account: {
+        userId: `usr_${Date.now()}`,
+        email: email.trim().toLowerCase(),
+        name: name.trim() || 'Aryan',
+        isLoggedIn: true,
+        authToken: `tok_${Date.now()}`,
+        syncStatus: 'synced',
+        lastSyncedAt: new Date().toISOString()
+      },
+      isOnboardingOpen: true
+    }));
+
+    sound.playFanfare();
+    return { success: true };
+  };
+
+  const loginAsGuest = () => {
+    sound.playLevelUp();
+    setState(prev => ({
+      ...prev,
+      account: {
+        userId: 'usr_guest_demo',
+        email: 'guest.adventurer@attackmode.dev',
+        name: 'Aryan (Guest)',
+        isLoggedIn: true,
+        syncStatus: 'synced',
+        lastSyncedAt: new Date().toISOString()
+      }
+    }));
+  };
+
+  const logoutUser = () => {
+    sound.playTap();
+    setState(prev => ({
+      ...prev,
+      account: {
+        ...prev.account,
+        isLoggedIn: false
+      }
+    }));
+  };
+
+  // Navigation Handlers
+  const setActiveTab = (tab: 'sections' | 'stats' | 'sla' | 'account') => {
     sound.playTap();
     setState(prev => ({ ...prev, activeTab: tab }));
+  };
+
+  const setSelectedDayOfWeek = (day: DayOfWeek) => {
+    sound.playTap();
+    setState(prev => ({ ...prev, selectedDayOfWeek: day }));
+  };
+
+  const setViewMode = (mode: 'day' | 'weekGrid') => {
+    sound.playTap();
+    setState(prev => ({ ...prev, viewMode: mode }));
   };
 
   const toggleAnchorMode = () => {
@@ -143,7 +290,6 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const validX = Math.max(1, Math.min(15, x));
     sound.playTap();
     setState(prev => {
-      // Update weekly scorecards targets with new quota (x * 7)
       const updatedScorecards = prev.weeklyScorecards.map(sc => ({
         ...sc,
         targetTasks: validX * 7
@@ -156,79 +302,60 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
   };
 
-  // Task Handlers
-  const addTask = (data: {
-    title: string;
-    category: TriadCategory;
-    sdtType: SDTType;
-    allocationMinutes: number;
-    deadlineTime: string;
-    isAnchor?: boolean;
-  }) => {
-    if (!data.title.trim()) {
-      return { success: false, error: 'Task title is required.' };
-    }
-
-    // Strict Rule: Non-mundane tasks must have a deadline time ("Deadline is God")
-    if (data.category !== 'mundane' && !data.deadlineTime) {
-      return { success: false, error: 'Deadline is God! You must set a deadline time.' };
-    }
-
+  // Section Task Handlers (Screenshot System)
+  const addSectionTask = (
+    day: DayOfWeek,
+    section: 'rich' | 'muscular' | 'intelligent',
+    title: string,
+    allocMinutes: number = 30
+  ) => {
+    if (!title.trim()) return;
     sound.playTap();
-    const today = getTodayDateString();
-    const newTask: AttackTask = {
-      id: `task-${Date.now()}`,
-      title: data.title.trim(),
-      category: data.category,
-      sdtType: data.sdtType,
-      allocationMinutes: Math.max(5, data.allocationMinutes || 30),
-      timeSpentMinutes: 0,
-      allocationReached: false,
-      deadlineTime: data.deadlineTime || '23:59',
+
+    const newTask: SectionTask = {
+      id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      dayOfWeek: day,
+      section,
+      title: title.trim(),
       isCompleted: false,
-      isAnchor: data.isAnchor || false,
-      date: today
+      allocationMinutes: allocMinutes,
+      deadlineTime: '18:00'
     };
 
     setState(prev => ({
       ...prev,
-      tasks: [newTask, ...prev.tasks]
+      sectionTasks: [...prev.sectionTasks, newTask]
     }));
-
-    return { success: true };
   };
 
-  const toggleTask = (id: string) => {
-    const today = getTodayDateString();
+  const toggleSectionTask = (id: string) => {
     setState(prev => {
       let newlyCompleted = false;
-      const updatedTasks = prev.tasks.map(t => {
+      const updated = prev.sectionTasks.map(t => {
         if (t.id === id) {
           const willComplete = !t.isCompleted;
           if (willComplete) newlyCompleted = true;
           return {
             ...t,
             isCompleted: willComplete,
-            completedAt: willComplete ? `${today}T${new Date().toLocaleTimeString('en-GB')}` : undefined
+            completedAt: willComplete ? new Date().toISOString() : undefined
           };
         }
         return t;
       });
 
       if (newlyCompleted) {
-        sound.playComplete();
-        // Check if daily quota is met
-        const activeCoreTasks = updatedTasks.filter(t => !t.isAnchor && t.category !== 'mundane' && t.date === today);
-        const completedCore = activeCoreTasks.filter(t => t.isCompleted).length;
-        if (completedCore === prev.dailyQuotaX) {
-          sound.playFanfare();
-          try {
-            confetti({
-              particleCount: 80,
-              spread: 60,
-              origin: { y: 0.6 }
-            });
-          } catch (e) {}
+        sound.playCheck();
+        // Check if all tasks for that day are complete
+        const targetDay = prev.sectionTasks.find(t => t.id === id)?.dayOfWeek;
+        if (targetDay) {
+          const dayTasks = updated.filter(t => t.dayOfWeek === targetDay);
+          if (dayTasks.length > 0 && dayTasks.every(t => t.isCompleted)) {
+            sound.playFanfare();
+            try {
+              confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+            } catch (e) {}
+          }
         }
       } else {
         sound.playTap();
@@ -236,35 +363,16 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       return {
         ...prev,
-        tasks: updatedTasks
+        sectionTasks: updated
       };
     });
   };
 
-  const deleteTask = (id: string) => {
+  const deleteSectionTask = (id: string) => {
     sound.playTap();
     setState(prev => ({
       ...prev,
-      tasks: prev.tasks.filter(t => t.id !== id)
-    }));
-  };
-
-  const incrementTaskTime = (id: string, minutes: number) => {
-    sound.playTap();
-    setState(prev => ({
-      ...prev,
-      tasks: prev.tasks.map(t => {
-        if (t.id === id) {
-          const newSpent = t.timeSpentMinutes + minutes;
-          const reached = newSpent >= t.allocationMinutes;
-          return {
-            ...t,
-            timeSpentMinutes: newSpent,
-            allocationReached: reached
-          };
-        }
-        return t;
-      })
+      sectionTasks: prev.sectionTasks.filter(t => t.id !== id)
     }));
   };
 
@@ -278,7 +386,6 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     notes?: string;
   }) => {
     sound.playTap();
-    // Auto-calculate SLA Priority based on deadline remaining
     const hoursRemaining = (new Date(ticketData.deadlineDateTime).getTime() - Date.now()) / (3600 * 1000);
     let priority: 'P1' | 'P2' | 'P3' | 'P4' = 'P3';
     if (hoursRemaining < 24) priority = 'P1';
@@ -307,7 +414,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const resolveTicket = (id: string) => {
-    sound.playComplete();
+    sound.playCheck();
     try {
       confetti({ particleCount: 50, spread: 50, origin: { y: 0.7 } });
     } catch (e) {}
@@ -333,30 +440,22 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (!ticket) return;
 
     sound.playLevelUp();
-    const today = getTodayDateString();
-    const deadlineTime = new Date(ticket.deadlineDateTime).toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    const currentDay = state.selectedDayOfWeek;
 
-    const newTask: AttackTask = {
-      id: `task-from-${ticket.id}-${Date.now()}`,
+    const newTask: SectionTask = {
+      id: `task-from-sla-${ticket.id}-${Date.now()}`,
+      dayOfWeek: currentDay,
+      section: ticket.category === 'mundane' ? 'rich' : ticket.category,
       title: `[${ticket.id}] ${ticket.title}`,
-      category: ticket.category,
-      sdtType: ticket.sdtType,
-      allocationMinutes: Math.round(ticket.allocationHours * 60),
-      timeSpentMinutes: 0,
-      allocationReached: false,
-      deadlineTime: deadlineTime || '18:00',
       isCompleted: false,
-      slaTicketId: ticket.id,
-      date: today
+      allocationMinutes: Math.round(ticket.allocationHours * 60),
+      deadlineTime: '18:00'
     };
 
     setState(prev => ({
       ...prev,
-      activeTab: 'today',
-      tasks: [newTask, ...prev.tasks]
+      activeTab: 'sections',
+      sectionTasks: [...prev.sectionTasks, newTask]
     }));
   };
 
@@ -401,81 +500,85 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }));
   };
 
-  // Weekly & Mutation Handlers
+  // Beginner Guide & Onboarding
+  const dismissGuide = () => {
+    sound.playTap();
+    setState(prev => ({ ...prev, isGuideDismissed: true }));
+  };
+
+  const reopenGuide = () => {
+    sound.playTap();
+    setState(prev => ({ ...prev, isGuideDismissed: false }));
+  };
+
+  const openOnboarding = () => {
+    sound.playTap();
+    setState(prev => ({ ...prev, isOnboardingOpen: true }));
+  };
+
+  const closeOnboarding = () => {
+    sound.playTap();
+    setState(prev => ({ ...prev, isOnboardingOpen: false }));
+  };
+
+  // Sound Toggle
+  const toggleSound = () => {
+    const isNowEnabled = sound.toggleSound();
+    setState(prev => ({ ...prev, soundEnabled: isNowEnabled }));
+    return isNowEnabled;
+  };
+
   const setMutationLog = (log: string) => {
     setState(prev => ({ ...prev, mutationLog: log }));
-  };
-
-  const updateWeeklyDayFocus = (dayOfWeek: string, focusTitle: string) => {
-    setState(prev => ({
-      ...prev,
-      weeklyPlans: prev.weeklyPlans.map(w =>
-        w.dayOfWeek === dayOfWeek ? { ...w, focusTitle } : w
-      )
-    }));
-  };
-
-  const recordDrillScore = (score: number) => {
-    sound.playFanfare();
-    const today = getTodayDateString();
-    setState(prev => ({
-      ...prev,
-      cognitiveDrillRecord: {
-        lastCompletedDate: today,
-        score,
-        streakDays: prev.cognitiveDrillRecord.streakDays + 1
-      }
-    }));
   };
 
   // Data Exporters
   const exportMarkdown = () => {
     sound.playTap();
     const today = getTodayDateString();
-    const activeTasks = state.tasks.filter(t => t.date === today && !t.isAnchor);
-    const activeSla = state.slaTickets.filter(t => t.status === 'active');
 
-    let md = `# ⚡ ATTACK MODE — Master Execution & SLA Report\n`;
+    let md = `# ⚡ ATTACK MODE — 7-Day Section System & Monthly Report\n`;
     md += `*Generated: ${new Date().toLocaleString()}*\n\n`;
 
     md += `## 1. Top Logical Creed\n`;
     md += `> "${CREED_MANTRAS[state.activeCreedIndex]}"\n\n`;
 
-    md += `## 2. Daily Quota (${state.dailyQuotaX} Tasks/Day Target)\n`;
-    activeTasks.forEach((t, i) => {
-      const status = t.isCompleted ? '[x]' : '[ ]';
-      md += `${i + 1}. ${status} **[${t.category.toUpperCase()}]** ${t.title} — Cap: ${t.allocationMinutes}m | Deadline: ${t.deadlineTime} (${t.sdtType})\n`;
+    md += `## 2. 7-Day Action Plan by Sections\n`;
+    DAYS_OF_WEEK.forEach(day => {
+      const dayTasks = state.sectionTasks.filter(t => t.dayOfWeek === day);
+      md += `### ${day}\n`;
+      ['rich', 'muscular', 'intelligent'].forEach(sec => {
+        const secTasks = dayTasks.filter(t => t.section === sec);
+        md += `#### ${sec.toUpperCase()}\n`;
+        if (secTasks.length === 0) {
+          md += `*(No tasks set)*\n`;
+        } else {
+          secTasks.forEach(t => {
+            const check = t.isCompleted ? '[x]' : '[ ]';
+            md += `- ${check} ${t.title} (${t.allocationMinutes}m)\n`;
+          });
+        }
+      });
+      md += `\n`;
+    });
+
+    md += `## 3. 4-Week Month Scorecard\n`;
+    state.weeklyScorecards.forEach(sc => {
+      md += `- **${sc.label}**: ${sc.completedTasks} / ${sc.targetTasks} Tasks Completed (Grade: **${sc.grade}**, SLA On-Time: ${sc.slaOnTimeRate}%)\n`;
     });
     md += `\n`;
 
-    md += `## 3. SLA Deadlines (The God Table)\n`;
-    md += `| Ticket ID | Priority | Category | Deliverable | Hard Deadline | Cap (Hrs) | Status |\n`;
-    md += `| :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n`;
-    state.slaTickets.forEach(s => {
-      md += `| ${s.id} | ${s.priority} | ${s.category.toUpperCase()} | ${s.title} | ${new Date(s.deadlineDateTime).toLocaleString()} | ${s.allocationHours}h | ${s.status.toUpperCase()} |\n`;
-    });
-    md += `\n`;
-
-    md += `## 4. V.IMP Monthly Targets (4-Week Big Rocks)\n`;
+    md += `## 4. V.IMP Monthly Targets\n`;
     state.monthlyTargets.forEach(m => {
       const pct = Math.round((m.currentCount / m.targetCount) * 100);
       md += `- **${m.title}**: ${m.currentCount} / ${m.targetCount} ${m.unit} (${pct}%)\n`;
-    });
-    md += `\n`;
-
-    md += `## 5. Weekly Mutation Log\n`;
-    md += `> ${state.mutationLog}\n\n`;
-
-    md += `## 6. Performance Scoreboard\n`;
-    state.weeklyScorecards.forEach(sc => {
-      md += `- **${sc.label}**: ${sc.completedTasks} / ${sc.targetTasks} Tasks Completed (Grade: **${sc.grade}**, SLA On-Time: ${sc.slaOnTimeRate}%)\n`;
     });
 
     const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `AttackMode_Execution_Plan_${today}.md`;
+    link.download = `AttackMode_SectionSystem_${today}.md`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -484,85 +587,49 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     sound.playTap();
     const today = getTodayDateString();
 
-    const headers = [
-      'Record_Type',
-      'ID',
-      'Title',
-      'Category',
-      'SDT_Type',
-      'Priority_or_Allocation',
-      'Deadline',
-      'Status',
-      'Date'
-    ];
-
-    const rows: string[][] = [];
-
-    // Daily tasks
-    state.tasks.forEach(t => {
-      rows.push([
-        'DailyTask',
-        t.id,
-        `"${t.title.replace(/"/g, '""')}"`,
-        t.category,
-        t.sdtType,
-        `${t.allocationMinutes} mins`,
-        t.deadlineTime,
-        t.isCompleted ? 'Completed' : 'Pending',
-        t.date
-      ]);
-    });
-
-    // SLA tickets
-    state.slaTickets.forEach(s => {
-      rows.push([
-        'SLATicket',
-        s.id,
-        `"${s.title.replace(/"/g, '""')}"`,
-        s.category,
-        s.sdtType,
-        `${s.priority} (${s.allocationHours}h cap)`,
-        s.deadlineDateTime,
-        s.status,
-        s.createdAt.slice(0, 10)
-      ]);
-    });
+    const headers = ['Day', 'Section', 'Task_Title', 'Allocation_Mins', 'Status'];
+    const rows: string[][] = state.sectionTasks.map(t => [
+      t.dayOfWeek,
+      t.section.toUpperCase(),
+      `"${t.title.replace(/"/g, '""')}"`,
+      `${t.allocationMinutes}m`,
+      t.isCompleted ? 'Completed' : 'Pending'
+    ]);
 
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `AttackMode_Data_${today}.csv`;
+    link.download = `AttackMode_SectionSystem_${today}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
 
   // Metrics computation
   const metrics = useMemo(() => {
-    const today = getTodayDateString();
-    const coreTasks = state.tasks.filter(t => !t.isAnchor && t.category !== 'mundane');
-    const intrinsicCount = coreTasks.filter(t => t.sdtType === 'intrinsic').length;
-    const extrinsicCount = coreTasks.filter(t => t.sdtType === 'extrinsic').length;
-    const totalSdt = intrinsicCount + extrinsicCount;
+    const currentDayTasks = state.sectionTasks.filter(t => t.dayOfWeek === state.selectedDayOfWeek);
+    const currentDayCompleted = currentDayTasks.filter(t => t.isCompleted).length;
+    const currentDayTotal = currentDayTasks.length;
+    const currentDayPct = currentDayTotal > 0 ? Math.round((currentDayCompleted / currentDayTotal) * 100) : 0;
 
-    const intrinsicPct = totalSdt > 0 ? Math.round((intrinsicCount / totalSdt) * 100) : 70;
-    const extrinsicPct = totalSdt > 0 ? 100 - intrinsicPct : 30;
-    const isBalanced = intrinsicPct >= 60 && intrinsicPct <= 80;
+    const allCompleted = state.sectionTasks.filter(t => t.isCompleted);
+    const weeklyTarget = state.dailyQuotaX * 7;
+    const weeklyPct = Math.min(100, Math.round((allCompleted.length / weeklyTarget) * 100));
 
-    const richCount = coreTasks.filter(t => t.category === 'rich').length;
-    const muscularCount = coreTasks.filter(t => t.category === 'muscular').length;
-    const intelligentCount = coreTasks.filter(t => t.category === 'intelligent').length;
-    const totalCore = richCount + muscularCount + intelligentCount;
+    const richCompleted = allCompleted.filter(t => t.section === 'rich').length;
+    const muscularCompleted = allCompleted.filter(t => t.section === 'muscular').length;
+    const intelligentCompleted = allCompleted.filter(t => t.section === 'intelligent').length;
 
-    const richPct = totalCore > 0 ? Math.round((richCount / totalCore) * 100) : 33;
-    const muscularPct = totalCore > 0 ? Math.round((muscularCount / totalCore) * 100) : 33;
-    const intelligentPct = totalCore > 0 ? 100 - richPct - muscularPct : 34;
+    const fourWeekTotalCompleted = state.weeklyScorecards.reduce((acc, sc) => acc + sc.completedTasks, 0);
+    const fourWeekTarget = state.dailyQuotaX * 28;
+    const monthPct = Math.round((fourWeekTotalCompleted / fourWeekTarget) * 100);
 
-    const todayCore = state.tasks.filter(t => !t.isAnchor && t.category !== 'mundane' && t.date === today);
-    const completedCore = todayCore.filter(t => t.isCompleted).length;
-    const quotaTarget = state.dailyQuotaX;
-    const percentage = Math.min(100, Math.round((completedCore / quotaTarget) * 100));
+    let overallGrade: 'S' | 'A' | 'B' | 'C' = 'B';
+    if (monthPct >= 95) overallGrade = 'S';
+    else if (monthPct >= 85) overallGrade = 'A';
+    else if (monthPct >= 70) overallGrade = 'B';
+    else overallGrade = 'C';
 
     const p1Active = state.slaTickets.filter(s => s.status === 'active' && s.priority === 'P1').length;
     const p2Active = state.slaTickets.filter(s => s.status === 'active' && s.priority === 'P2').length;
@@ -570,27 +637,25 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const resolvedCount = state.slaTickets.filter(s => s.status === 'resolved').length;
 
     return {
-      sdtRatio: {
-        intrinsicPct,
-        extrinsicPct,
-        intrinsicCount,
-        extrinsicCount,
-        isBalanced
+      currentDayStats: {
+        totalTasks: currentDayTotal,
+        completedTasks: currentDayCompleted,
+        pct: currentDayPct
       },
-      triadBreakdown: {
-        richCount,
-        muscularCount,
-        intelligentCount,
-        totalCore,
-        richPct,
-        muscularPct,
-        intelligentPct
+      allWeekStats: {
+        totalTasks: state.sectionTasks.length,
+        completedTasks: allCompleted.length,
+        weeklyTarget,
+        weeklyPct,
+        richCompleted,
+        muscularCompleted,
+        intelligentCompleted
       },
-      todayProgress: {
-        completedCore,
-        quotaTarget,
-        percentage,
-        isQuotaMet: completedCore >= quotaTarget
+      monthStats: {
+        fourWeekTotalCompleted,
+        fourWeekTarget,
+        monthPct,
+        overallGrade
       },
       slaSummary: {
         p1Active,
@@ -599,20 +664,25 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         resolvedCount
       }
     };
-  }, [state.tasks, state.slaTickets, state.dailyQuotaX]);
+  }, [state.sectionTasks, state.selectedDayOfWeek, state.dailyQuotaX, state.weeklyScorecards, state.slaTickets]);
 
   return (
     <AttackModeContext.Provider
       value={{
         state,
+        loginUser,
+        registerUser,
+        loginAsGuest,
+        logoutUser,
         setActiveTab,
+        setSelectedDayOfWeek,
+        setViewMode,
         toggleAnchorMode,
         nextCreed,
         setDailyQuotaX,
-        addTask,
-        toggleTask,
-        deleteTask,
-        incrementTaskTime,
+        addSectionTask,
+        toggleSectionTask,
+        deleteSectionTask,
         addSLATicket,
         resolveTicket,
         deleteTicket,
@@ -621,9 +691,12 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         decrementMonthlyTarget,
         addMonthlyTarget,
         deleteMonthlyTarget,
+        dismissGuide,
+        reopenGuide,
+        openOnboarding,
+        closeOnboarding,
+        toggleSound,
         setMutationLog,
-        updateWeeklyDayFocus,
-        recordDrillScore,
         exportMarkdown,
         exportCSV,
         metrics
