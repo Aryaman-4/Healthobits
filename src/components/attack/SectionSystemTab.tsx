@@ -9,7 +9,8 @@ import {
   ShieldAlert,
   RotateCcw,
   Sparkles,
-  HelpCircle
+  HelpCircle,
+  Archive
 } from 'lucide-react';
 import { useAttackMode } from '../../context/AttackModeContext';
 import { DayOfWeek } from '../../types/attackMode';
@@ -25,6 +26,7 @@ export const SectionSystemTab: React.FC = () => {
     addSectionTask,
     toggleSectionTask,
     deleteSectionTask,
+    clearCompletedSectionTasks,
     openSherlockModal,
     openSundayResetModal,
     openAnchorModal,
@@ -317,9 +319,22 @@ export const SectionSystemTab: React.FC = () => {
               ))}
             </div>
 
-            <span className="text-xs text-slate-400 font-medium hidden sm:inline">
-              {activeDayTasks.length} tasks
-            </span>
+            <div className="flex items-center gap-2">
+              {activeDayTasks.some(t => t.isCompleted) && (
+                <button
+                  onClick={() => clearCompletedSectionTasks(activeDay)}
+                  className="px-2.5 py-1 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 text-[11px] font-semibold flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                  title="Clear completed tasks from board (safely preserved in reports)"
+                >
+                  <Archive size={12} className="text-[#937485]" />
+                  <span>Clear Done ({activeDayTasks.filter(t => t.isCompleted).length})</span>
+                </button>
+              )}
+
+              <span className="text-xs text-slate-400 font-medium hidden sm:inline">
+                {activeDayTasks.length} tasks
+              </span>
+            </div>
           </div>
 
           {/* The 3 Core Pillar Sections */}

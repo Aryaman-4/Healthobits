@@ -8,7 +8,9 @@ import {
   Search,
   Plus,
   Clock,
-  ArrowLeft
+  ArrowLeft,
+  Copy,
+  Check
 } from 'lucide-react';
 import { useAttackMode } from '../../context/AttackModeContext';
 import { DataDropType } from '../../types/attackMode';
@@ -35,6 +37,14 @@ export const DataDropPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<DataDropType>('insight');
   const [filterType, setFilterType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopy = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    sound.playCheck();
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,8 +242,30 @@ export const DataDropPage: React.FC = () => {
                   </div>
 
                   <button
+                    onClick={() => handleCopy(drop.id, drop.content)}
+                    className={`px-2 py-1 rounded-xl border transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer ${
+                      copiedId === drop.id
+                        ? 'bg-[#7EB982]/15 text-[#5A9A5E] border-[#7EB982]/30'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 border-slate-200/60'
+                    }`}
+                    title="Copy note to clipboard"
+                  >
+                    {copiedId === drop.id ? (
+                      <>
+                        <Check size={12} strokeWidth={2.5} />
+                        <span>Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={12} />
+                        <span className="hidden sm:inline">Copy</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
                     onClick={() => deleteDataDrop(drop.id)}
-                    className="text-slate-300 hover:text-red-500 p-1 transition-colors cursor-pointer"
+                    className="text-slate-300 hover:text-red-500 p-1.5 transition-colors cursor-pointer rounded-lg hover:bg-red-50"
                     title="Delete note"
                   >
                     <Trash2 size={13} />
@@ -261,3 +293,4 @@ export const DataDropPage: React.FC = () => {
     </div>
   );
 };
+

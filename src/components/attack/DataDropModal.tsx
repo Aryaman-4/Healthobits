@@ -9,7 +9,9 @@ import {
   RotateCcw,
   Brain,
   HelpCircle,
-  Clock
+  Clock,
+  Copy,
+  Check
 } from 'lucide-react';
 import { useAttackMode } from '../../context/AttackModeContext';
 import { DataDropType } from '../../types/attackMode';
@@ -29,6 +31,14 @@ export const DataDropModal: React.FC = () => {
   const [content, setContent] = useState('');
   const [selectedType, setSelectedType] = useState<DataDropType>('insight');
   const [filterType, setFilterType] = useState<string>('all');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopy = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    sound.playCheck();
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   if (!state.isDataDropModalOpen) return null;
 
@@ -155,8 +165,27 @@ export const DataDropModal: React.FC = () => {
                         {drop.createdAt}
                       </span>
                       <button
+                        onClick={() => handleCopy(drop.id, drop.content)}
+                        className={`p-1 rounded-lg border transition-colors flex items-center gap-1 text-[10px] font-semibold cursor-pointer ${
+                          copiedId === drop.id
+                            ? 'bg-[#7EB982]/15 text-[#5A9A5E] border-[#7EB982]/30'
+                            : 'bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 border-slate-200/60'
+                        }`}
+                        title="Copy note"
+                      >
+                        {copiedId === drop.id ? (
+                          <>
+                            <Check size={11} strokeWidth={2.5} />
+                            <span>Copied</span>
+                          </>
+                        ) : (
+                          <Copy size={11} />
+                        )}
+                      </button>
+
+                      <button
                         onClick={() => deleteDataDrop(drop.id)}
-                        className="text-slate-300 hover:text-red-500 transition-colors p-0.5 cursor-pointer"
+                        className="text-slate-300 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50 cursor-pointer"
                         title="Delete drop"
                       >
                         <Trash2 size={12} />

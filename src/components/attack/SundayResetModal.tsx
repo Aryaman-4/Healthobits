@@ -94,16 +94,49 @@ export const SundayResetModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-1">
-            <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+          <div className="pt-2 space-y-2">
+            <span className="block text-xs font-bold text-slate-800">Board Clean-up Preference:</span>
+            
+            <label className={`p-3 rounded-2xl border transition-all flex items-start gap-2.5 cursor-pointer ${
+              keepRecurring ? 'bg-[#937485]/10 border-[#937485]/40 text-slate-900' : 'bg-slate-50 border-slate-200 text-slate-600'
+            }`}>
               <input
-                type="checkbox"
+                type="radio"
+                name="recurringOption"
                 checked={keepRecurring}
-                onChange={e => setKeepRecurring(e.target.checked)}
-                className="w-4 h-4 rounded text-[#937485] cursor-pointer"
+                onChange={() => setKeepRecurring(true)}
+                className="mt-0.5 text-[#937485] cursor-pointer"
               />
-              <span>Keep existing tasks and reset checkmarks for the new sprint</span>
+              <div className="text-xs">
+                <div className="font-bold">Reset checkmarks (Keep recurring habits)</div>
+                <div className="text-[11px] text-slate-500 mt-0.5">
+                  Unchecks all habits for Monday so they are fresh and ready (never left greyed out).
+                </div>
+              </div>
             </label>
+
+            <label className={`p-3 rounded-2xl border transition-all flex items-start gap-2.5 cursor-pointer ${
+              !keepRecurring ? 'bg-[#937485]/10 border-[#937485]/40 text-slate-900' : 'bg-slate-50 border-slate-200 text-slate-600'
+            }`}>
+              <input
+                type="radio"
+                name="recurringOption"
+                checked={!keepRecurring}
+                onChange={() => setKeepRecurring(false)}
+                className="mt-0.5 text-[#937485] cursor-pointer"
+              />
+              <div className="text-xs">
+                <div className="font-bold">Clear board (Start clean slate)</div>
+                <div className="text-[11px] text-slate-500 mt-0.5">
+                  Removes all completed tasks from the active screen. Your report retains all numbers.
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div className="p-3 rounded-xl bg-[#7EB982]/10 border border-[#7EB982]/20 text-[11px] text-[#5A9A5E] font-medium flex items-center gap-1.5">
+            <span>🛡️</span>
+            <span>All completed tasks are permanently preserved in your monthly reports & stats.</span>
           </div>
         </div>
 

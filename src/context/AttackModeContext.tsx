@@ -52,6 +52,7 @@ interface AttackModeContextType {
   addSectionTask: (day: DayOfWeek, section: 'rich' | 'muscular' | 'intelligent', title: string, allocMinutes?: number) => void;
   toggleSectionTask: (id: string) => void;
   deleteSectionTask: (id: string) => void;
+  clearCompletedSectionTasks: (day?: DayOfWeek) => void;
   // Sunday Reset & Weekly Archive Engine
   archiveWeekAndReset: (nextWeekTargetX: number, keepRecurringTasks: boolean) => void;
   // Data Drop (Center '+' feature)
@@ -138,6 +139,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           ...initial,
           ...parsed,
           anchorHabits: parsed.anchorHabits?.length ? parsed.anchorHabits : initial.anchorHabits,
+          archivedTasks: parsed.archivedTasks || [],
           isAnchorModalOpen: false,
           isDataDropModalOpen: false,
           isSherlockModalOpen: false,
@@ -465,10 +467,36 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const deleteSectionTask = (id: string) => {
     sound.playTap();
-    setState(prev => ({
-      ...prev,
-      sectionTasks: prev.sectionTasks.filter(t => t.id !== id)
-    }));
+    setState(prev => {
+      const taskToDelete = prev.sectionTasks.find(t => t.id === id);
+      // If the task was completed, safely preserve it in archivedTasks so historical report metrics NEVER drop!
+      const newArchived = taskToDelete && taskToDelete.isCompleted
+        ? [...(prev.archivedTasks || []), { ...taskToDelete, archivedAt: new Date().toISOString() }]
+        : (prev.archivedTasks || []);
+
+      return {
+        ...prev,
+        sectionTasks: prev.sectionTasks.filter(t => t.id !== id),
+        archivedTasks: newArchived
+      };
+    });
+  };
+
+  const clearCompletedSectionTasks = (day?: DayOfWeek) => {
+    sound.playCheck();
+    setState(prev => {
+      const toArchive = prev.sectionTasks.filter(t => (day ? t.dayOfWeek === day : true) && t.isCompleted);
+      if (toArchive.length === 0) return prev;
+
+      const remaining = prev.sectionTasks.filter(t => (day ? t.dayOfWeek !== day : false) || !t.isCompleted);
+      const newlyArchived = toArchive.map(t => ({ ...t, archivedAt: new Date().toISOString() }));
+
+      return {
+        ...prev,
+        sectionTasks: remaining,
+        archivedTasks: [...(prev.archivedTasks || []), ...newlyArchived]
+      };
+    });
   };
 
   // Sunday Reset & Weekly Archive Engine
@@ -478,7 +506,9 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
     } catch (e) {}
 
-    const completedThisWeek = state.sectionTasks.filter(t => t.isCompleted).length;
+    const activeCompleted = state.sectionTasks.filter(t => t.isCompleted);
+    const archivedCompletedThisWeek = (state.archivedTasks || []).filter(t => t.isCompleted);
+    const completedThisWeek = activeCompleted.length + archivedCompletedThisWeek.length;
     const targetThisWeek = state.dailyQuotaX * 7;
     const weekPct = Math.round((completedThisWeek / targetThisWeek) * 100);
 
@@ -506,16 +536,24 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return sc;
       });
 
-      // Reset task states for fresh sprint
+      // Move completed tasks into permanent archive
+      const completedToArchive = prev.sectionTasks
+        .filter(t => t.isCompleted)
+        .map(t => ({ ...t, archivedAt: new Date().toISOString() }));
+
+      // Reset task states for fresh sprint:
+      // If keepRecurringTasks is TRUE: uncheck checkmarks so tasks are fresh for the new week (NOT greyed out!)
+      // If keepRecurringTasks is FALSE: remove completed tasks completely so screen is clean (NOT greyed out!)
       const nextTasks = keepRecurringTasks
         ? prev.sectionTasks.map(t => ({ ...t, isCompleted: false, completedAt: undefined }))
-        : prev.sectionTasks;
+        : prev.sectionTasks.filter(t => !t.isCompleted);
 
       return {
         ...prev,
         dailyQuotaX: nextWeekTargetX,
         weeklyScorecards: updatedScorecards,
         sectionTasks: nextTasks,
+        archivedTasks: [...(prev.archivedTasks || []), ...completedToArchive],
         selectedDayOfWeek: 'Monday',
         isSundayResetModalOpen: false
       };
@@ -938,7 +976,11 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const currentDayTotal = currentDayTasks.length;
     const currentDayPct = currentDayTotal > 0 ? Math.round((currentDayCompleted / currentDayTotal) * 100) : 0;
 
-    const allCompleted = state.sectionTasks.filter(t => t.isCompleted);
+    // Active completed + Archived completed so report data is NEVER lost when deleting or archiving tasks!
+    const activeCompleted = state.sectionTasks.filter(t => t.isCompleted);
+    const archivedCompleted = (state.archivedTasks || []).filter(t => t.isCompleted);
+    const allCompleted = [...activeCompleted, ...archivedCompleted];
+
     const weeklyTarget = state.dailyQuotaX * 7;
     const weeklyPct = Math.min(100, Math.round((allCompleted.length / weeklyTarget) * 100));
 
@@ -990,7 +1032,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         resolvedCount
       }
     };
-  }, [state.sectionTasks, state.selectedDayOfWeek, state.dailyQuotaX, state.weeklyScorecards, state.slaTickets, state.monthlyHistory]);
+  }, [state.sectionTasks, state.archivedTasks, state.selectedDayOfWeek, state.dailyQuotaX, state.weeklyScorecards, state.slaTickets, state.monthlyHistory]);
 
   return (
     <AttackModeContext.Provider
@@ -1015,6 +1057,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         addSectionTask,
         toggleSectionTask,
         deleteSectionTask,
+        clearCompletedSectionTasks,
         archiveWeekAndReset,
         addDataDrop,
         deleteDataDrop,

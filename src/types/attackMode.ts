@@ -15,6 +15,8 @@ export interface SectionTask {
   completedAt?: string;
   allocationMinutes: number;
   deadlineTime?: string;
+  isRecurring?: boolean;
+  archivedAt?: string;
 }
 
 export interface AttackTask {
@@ -123,6 +125,7 @@ export interface AttackModeState {
   selectedDayOfWeek: DayOfWeek;
   viewMode: 'day' | 'weekGrid';
   sectionTasks: SectionTask[];
+  archivedTasks: SectionTask[];
   tasks: AttackTask[];
   slaTickets: SLATicket[];
   monthlyTargets: MonthlyTarget[];

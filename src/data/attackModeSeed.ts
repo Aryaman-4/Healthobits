@@ -417,6 +417,7 @@ export const getInitialAttackModeState = (): AttackModeState => {
     selectedDayOfWeek: currentDayOfWeek,
     viewMode: 'day',
     sectionTasks: INITIAL_SECTION_TASKS,
+    archivedTasks: [],
     tasks: [],
     slaTickets,
     monthlyTargets,
