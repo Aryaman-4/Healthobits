@@ -1,20 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   Clock,
-  AlertTriangle,
-  CheckCircle,
+  Check,
   Plus,
-  Filter,
-  ArrowUpRight,
   Trash2,
-  Calendar,
-  AlertOctagon,
-  ShieldAlert,
-  Flame,
-  Check
+  ArrowUpRight,
+  AlertCircle
 } from 'lucide-react';
 import { useAttackMode } from '../../context/AttackModeContext';
-import { SLATicket, SLAPriority, TriadCategory, SDTType } from '../../types/attackMode';
+import { SLAPriority, TriadCategory, SDTType } from '../../types/attackMode';
 import { TRIAD_CONFIG } from '../../data/attackModeSeed';
 import { sound } from '../../utils/audio';
 
@@ -51,7 +45,6 @@ export const DeadlineSLATab: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Filter & Sort
   const filteredTickets = state.slaTickets
     .filter(ticket => {
       if (filterStatus !== 'all' && ticket.status !== filterStatus) return false;
@@ -59,7 +52,6 @@ export const DeadlineSLATab: React.FC = () => {
       return true;
     })
     .sort((a, b) => {
-      // Priority ordering: P1 -> P2 -> P3 -> P4
       const pOrder: Record<SLAPriority, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
       if (pOrder[a.priority] !== pOrder[b.priority]) {
         return pOrder[a.priority] - pOrder[b.priority];
@@ -85,18 +77,12 @@ export const DeadlineSLATab: React.FC = () => {
     setShowAddModal(false);
   };
 
-  // Helper for live time-blindness countdown
   const getLiveCountdown = (isoString: string) => {
     const target = new Date(isoString).getTime();
-    const now = Date.now();
-    const diff = target - now;
+    const diff = target - Date.now();
 
     if (diff <= 0) {
-      return {
-        formatted: 'BREACHED / PAST DUE',
-        isCritical: true,
-        hoursRemaining: 0
-      };
+      return { formatted: 'Past Due', isCritical: true };
     }
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -109,52 +95,33 @@ export const DeadlineSLATab: React.FC = () => {
 
     return {
       formatted: `${days > 0 ? `${days}d ` : ''}${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`,
-      isCritical: totalHours < 12,
-      hoursRemaining: totalHours
+      isCritical: totalHours < 12
     };
   };
 
-  const getPriorityStyle = (priority: SLAPriority, isCritical: boolean) => {
-    switch (priority) {
+  const getBadgeColor = (p: SLAPriority) => {
+    switch (p) {
       case 'P1':
-        return 'bg-red-50 border-l-6 border-red-600 text-red-950';
+        return 'bg-[#E67370] text-white';
       case 'P2':
-        return 'bg-amber-50 border-l-6 border-amber-500 text-amber-950';
+        return 'bg-[#ECA172] text-white';
       case 'P3':
-        return 'bg-yellow-50 border-l-6 border-yellow-400 text-yellow-950';
+        return 'bg-amber-100 text-amber-900';
       case 'P4':
-        return 'bg-emerald-50 border-l-6 border-emerald-500 text-emerald-950';
-      default:
-        return 'bg-slate-50 border-l-6 border-slate-400 text-slate-900';
-    }
-  };
-
-  const getPriorityBadge = (priority: SLAPriority) => {
-    switch (priority) {
-      case 'P1':
-        return 'bg-red-600 text-white font-mono';
-      case 'P2':
-        return 'bg-amber-500 text-white font-mono';
-      case 'P3':
-        return 'bg-yellow-500 text-slate-900 font-mono';
-      case 'P4':
-        return 'bg-emerald-600 text-white font-mono';
+        return 'bg-[#7EB982] text-white';
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6 space-y-6">
-      {/* 1. Header & Controls */}
-      <div className="bg-white rounded-2xl border-2 border-[#E2E8F0] border-b-5 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="max-w-md mx-auto sm:max-w-4xl px-4 sm:px-6 py-5 space-y-5 font-sans">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xl">⚖️</span>
-            <h2 className="font-black text-lg sm:text-xl text-slate-900 uppercase tracking-tight">
-              The God Table — Incident-Priority SLA Ticketing
-            </h2>
-          </div>
-          <p className="text-xs text-slate-600 font-medium mt-1">
-            Engineered for time-blindness. Makes invisible deadlines physically urgent through hard countdowns.
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+            Deadline SLA
+          </h1>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Hard incident timers for time-sensitive commitments
           </p>
         </div>
 
@@ -163,77 +130,40 @@ export const DeadlineSLATab: React.FC = () => {
             sound.playTap();
             setShowAddModal(true);
           }}
-          className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-wider border-2 border-b-4 border-red-800 active:border-b-2 active:translate-y-0.5 cursor-pointer flex items-center justify-center gap-1.5 transition-all shadow-xs self-start md:self-auto"
+          className="px-3.5 py-2 rounded-xl bg-[#937485] hover:bg-[#836475] text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
         >
-          <Plus size={15} />
-          <span>+ New Incident Ticket</span>
+          <Plus size={14} />
+          <span>New Ticket</span>
         </button>
       </div>
 
-      {/* 2. Priority Matrix Legend & SLA Rules */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold">
-        <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-900 flex items-center gap-2">
-          <span className="px-1.5 py-0.5 rounded bg-red-600 text-white font-mono text-[10px]">P1</span>
-          <div>
-            <div className="leading-tight">CRITICAL (&lt; 24h)</div>
-            <div className="text-[10px] text-red-700 font-normal">Immediate Execution</div>
-          </div>
-        </div>
-
-        <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center gap-2">
-          <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white font-mono text-[10px]">P2</span>
-          <div>
-            <div className="leading-tight">HIGH (&lt; 72h)</div>
-            <div className="text-[10px] text-amber-700 font-normal">Next In Queue</div>
-          </div>
-        </div>
-
-        <div className="p-2.5 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-900 flex items-center gap-2">
-          <span className="px-1.5 py-0.5 rounded bg-yellow-400 text-slate-900 font-mono text-[10px]">P3</span>
-          <div>
-            <div className="leading-tight">MEDIUM (&lt; 7d)</div>
-            <div className="text-[10px] text-yellow-800 font-normal">Scheduled This Week</div>
-          </div>
-        </div>
-
-        <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center gap-2">
-          <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white font-mono text-[10px]">P4</span>
-          <div>
-            <div className="leading-tight">SAFE (&gt; 7d)</div>
-            <div className="text-[10px] text-emerald-700 font-normal">Buffer Stage</div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Filters & Search Pills */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <span className="text-[11px] font-black uppercase text-slate-500">Pillar:</span>
-          {['all', 'rich', 'muscular', 'intelligent'].map(p => (
+      {/* Filter Tabs */}
+      <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar text-xs">
+        <div className="flex items-center gap-1.5">
+          {(['all', 'rich', 'muscular', 'intelligent'] as const).map(p => (
             <button
               key={p}
               onClick={() => setFilterPillar(p)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl font-semibold capitalize transition-all cursor-pointer ${
                 filterPillar === p
                   ? 'bg-slate-900 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-white text-slate-500 hover:text-slate-800 border border-slate-100'
               }`}
             >
-              {p}
+              {p === 'all' ? 'All' : p}
             </button>
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-black uppercase text-slate-500">Status:</span>
+        <div className="flex items-center gap-1">
           {(['active', 'resolved', 'all'] as const).map(s => (
             <button
               key={s}
               onClick={() => setFilterStatus(s)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg font-semibold capitalize transition-all cursor-pointer ${
                 filterStatus === s
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-[#937485] text-white'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               {s}
@@ -242,181 +172,109 @@ export const DeadlineSLATab: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. The Interactive God Table */}
-      <div className="bg-white rounded-2xl border-2 border-[#E2E8F0] border-b-5 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-100 border-b border-slate-200 text-slate-600 font-black uppercase text-[10px] tracking-wider">
-                <th className="py-3 px-3">SLA / ID</th>
-                <th className="py-3 px-3">Deliverable & Notes</th>
-                <th className="py-3 px-3">Pillar / SDT</th>
-                <th className="py-3 px-3">Alloc. Cap</th>
-                <th className="py-3 px-3">Hard Deadline</th>
-                <th className="py-3 px-3">Live Countdown</th>
-                <th className="py-3 px-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {filteredTickets.map(ticket => {
-                const conf = TRIAD_CONFIG[ticket.category];
-                const countdown = getLiveCountdown(ticket.deadlineDateTime);
-                const isResolved = ticket.status === 'resolved';
+      {/* Ticket List Cards */}
+      <div className="space-y-3">
+        {filteredTickets.map(ticket => {
+          const countdown = getLiveCountdown(ticket.deadlineDateTime);
+          const isResolved = ticket.status === 'resolved';
 
-                return (
-                  <tr
-                    key={ticket.id}
-                    className={`transition-colors ${
-                      isResolved ? 'opacity-60 bg-slate-50' : getPriorityStyle(ticket.priority, countdown.isCritical)
-                    }`}
+          return (
+            <div
+              key={ticket.id}
+              className={`bg-white rounded-3xl p-4 sm:p-5 shadow-xs border transition-all ${
+                isResolved
+                  ? 'border-slate-100 opacity-60'
+                  : countdown.isCritical
+                  ? 'border-[#E67370] bg-red-50/20'
+                  : 'border-slate-100 hover:border-slate-200'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1.5 min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getBadgeColor(ticket.priority)}`}>
+                      {ticket.priority}
+                    </span>
+                    <span className="font-mono text-xs font-semibold text-slate-500">
+                      {ticket.id}
+                    </span>
+                    <span className="text-[10px] font-medium text-slate-400 capitalize">
+                      {ticket.category} • {ticket.allocationHours}h cap
+                    </span>
+                  </div>
+
+                  <h3 className="font-bold text-sm text-slate-900 leading-snug">
+                    {ticket.title}
+                  </h3>
+
+                  {ticket.notes && (
+                    <p className="text-xs text-slate-500 font-medium">
+                      {ticket.notes}
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-2 text-xs pt-1">
+                    <Clock size={13} className={countdown.isCritical ? 'text-[#E67370]' : 'text-slate-400'} />
+                    <span className={`font-mono font-semibold ${countdown.isCritical ? 'text-[#E67370]' : 'text-slate-600'}`}>
+                      {isResolved ? 'Resolved' : countdown.formatted}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  {!isResolved && (
+                    <button
+                      onClick={() => pushTicketToToday(ticket.id)}
+                      className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1"
+                      title="Push to Today"
+                    >
+                      <ArrowUpRight size={13} />
+                      <span className="hidden sm:inline">Push</span>
+                    </button>
+                  )}
+
+                  {!isResolved && (
+                    <button
+                      onClick={() => resolveTicket(ticket.id)}
+                      className="p-1.5 rounded-xl bg-[#7EB982] hover:bg-[#6FA873] text-white cursor-pointer transition-colors"
+                      title="Resolve"
+                    >
+                      <Check size={14} strokeWidth={3} />
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => deleteTicket(ticket.id)}
+                    className="p-1.5 rounded-xl text-slate-300 hover:text-red-500 hover:bg-slate-100 transition-colors cursor-pointer"
+                    title="Delete"
                   >
-                    {/* SLA Priority & ID */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${getPriorityBadge(
-                            ticket.priority
-                          )}`}
-                        >
-                          {ticket.priority}
-                        </span>
-                        <span className="font-mono font-bold text-slate-800">
-                          {ticket.id}
-                        </span>
-                      </div>
-                    </td>
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
 
-                    {/* Deliverable Title & Notes */}
-                    <td className="py-3.5 px-3 min-w-[220px]">
-                      <div className="font-bold text-slate-900 leading-snug">
-                        {ticket.title}
-                      </div>
-                      {ticket.notes && (
-                        <p className="text-[11px] text-slate-600 font-medium mt-0.5 italic">
-                          {ticket.notes}
-                        </p>
-                      )}
-                    </td>
-
-                    {/* Pillar & SDT */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
-                      <div className="flex flex-col gap-1 items-start">
-                        <span
-                          className={`text-[9px] font-black uppercase px-1.5 py-0.2 rounded ${conf.badgeClass}`}
-                        >
-                          {conf.icon} {conf.label}
-                        </span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase">
-                          {ticket.sdtType === 'intrinsic' ? '🎯 Intrinsic (70%)' : '⚡ Extrinsic (30%)'}
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* Work Allocation Cap */}
-                    <td className="py-3.5 px-3 whitespace-nowrap font-mono font-bold text-slate-700">
-                      {ticket.allocationHours}h Max
-                    </td>
-
-                    {/* Hard Deadline */}
-                    <td className="py-3.5 px-3 whitespace-nowrap font-medium text-slate-800">
-                      <div>
-                        {new Date(ticket.deadlineDateTime).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </div>
-                      <div className="text-[10px] text-slate-500 font-mono">
-                        {new Date(ticket.deadlineDateTime).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </div>
-                    </td>
-
-                    {/* Live Time-Blindness Countdown */}
-                    <td className="py-3.5 px-3 whitespace-nowrap font-mono font-black">
-                      {isResolved ? (
-                        <span className="text-emerald-700 font-bold flex items-center gap-1">
-                          <CheckCircle size={14} /> Resolved
-                        </span>
-                      ) : (
-                        <div
-                          className={`flex items-center gap-1.5 ${
-                            countdown.isCritical
-                              ? 'text-red-600 text-sm animate-pulse'
-                              : 'text-slate-800'
-                          }`}
-                        >
-                          <Clock size={13} className={countdown.isCritical ? 'text-red-600' : 'text-slate-500'} />
-                          <span>{countdown.formatted}</span>
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="py-3.5 px-3 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {!isResolved && (
-                          <button
-                            onClick={() => pushTicketToToday(ticket.id)}
-                            className="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 font-bold text-[10px] uppercase flex items-center gap-1 cursor-pointer transition-all"
-                            title="Push this deliverable directly to Today's quota"
-                          >
-                            <ArrowUpRight size={12} />
-                            <span>Push Today</span>
-                          </button>
-                        )}
-
-                        {!isResolved && (
-                          <button
-                            onClick={() => resolveTicket(ticket.id)}
-                            className="px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] uppercase flex items-center gap-1 cursor-pointer transition-all"
-                            title="Mark resolved on time"
-                          >
-                            <Check size={12} strokeWidth={3} />
-                            <span>Resolve</span>
-                          </button>
-                        )}
-
-                        <button
-                          onClick={() => deleteTicket(ticket.id)}
-                          className="p-1 rounded text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
-                          title="Delete ticket"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-
-              {filteredTickets.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-500 text-xs font-semibold">
-                    No incident tickets found matching the selected filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        {filteredTickets.length === 0 && (
+          <div className="p-8 rounded-3xl bg-white border border-dashed border-slate-200 text-center text-xs text-slate-400">
+            No incident tickets matching selected filters.
+          </div>
+        )}
       </div>
 
-      {/* 5. Add SLA Ticket Modal */}
+      {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl border-2 border-slate-300 border-b-6 max-w-md w-full p-5 space-y-4 shadow-2xl animate-scale-up">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🚨</span>
-                <h3 className="font-black text-sm text-slate-900 uppercase">
-                  Log New Incident SLA Ticket
-                </h3>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-100 animate-scale-up">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h3 className="font-bold text-sm text-slate-900">
+                New Deadline Ticket
+              </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="w-7 h-7 rounded-lg bg-slate-100 text-xs font-bold text-slate-600 cursor-pointer"
+                className="w-6 h-6 rounded-lg bg-slate-100 text-xs font-semibold text-slate-500 cursor-pointer"
               >
                 ✕
               </button>
@@ -424,7 +282,7 @@ export const DeadlineSLATab: React.FC = () => {
 
             <form onSubmit={handleCreateTicket} className="space-y-3">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Deliverable Name
                 </label>
                 <input
@@ -432,47 +290,30 @@ export const DeadlineSLATab: React.FC = () => {
                   required
                   value={newTitle}
                   onChange={e => setNewTitle(e.target.value)}
-                  placeholder="e.g. Deliver Security Audit, 2.2x Deadlift, Cloud Video Ship..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:outline-none focus:border-red-600"
+                  placeholder="e.g. Deliver client report, 2.2x deadlift..."
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#937485]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Pillar
                   </label>
                   <select
                     value={newCategory}
                     onChange={e => setNewCategory(e.target.value as TriadCategory)}
-                    className="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs font-bold bg-white"
+                    className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-medium bg-white"
                   >
-                    <option value="rich">💰 Rich</option>
-                    <option value="muscular">💪 Muscular</option>
-                    <option value="intelligent">🧠 Intelligent</option>
-                    <option value="mundane">⚙️ Mundane</option>
+                    <option value="rich">Rich</option>
+                    <option value="muscular">Muscular</option>
+                    <option value="intelligent">Intelligent</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">
-                    Motivation (SDT)
-                  </label>
-                  <select
-                    value={newSdt}
-                    onChange={e => setNewSdt(e.target.value as SDTType)}
-                    className="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs font-bold bg-white"
-                  >
-                    <option value="extrinsic">⚡ Extrinsic (30%)</option>
-                    <option value="intrinsic">🎯 Intrinsic (70%)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">
-                    Allocated Work Cap (Hrs)
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Work Cap (Hours)
                   </label>
                   <input
                     type="number"
@@ -480,34 +321,34 @@ export const DeadlineSLATab: React.FC = () => {
                     min="0.5"
                     value={newAllocHours}
                     onChange={e => setNewAllocHours(Number(e.target.value))}
-                    className="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs font-bold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">
-                    Hard Deadline (Date & Time)
-                  </label>
-                  <input
-                    type="datetime-local"
-                    required
-                    value={newDeadlineDate}
-                    onChange={e => setNewDeadlineDate(e.target.value)}
-                    className="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs font-bold bg-white"
+                    className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-medium"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">
-                  Context / Remediation Notes
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Hard Deadline (Date & Time)
+                </label>
+                <input
+                  type="datetime-local"
+                  required
+                  value={newDeadlineDate}
+                  onChange={e => setNewDeadlineDate(e.target.value)}
+                  className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-medium bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Notes
                 </label>
                 <textarea
                   rows={2}
                   value={newNotes}
                   onChange={e => setNewNotes(e.target.value)}
-                  placeholder="Key acceptance criteria or instructions..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-medium"
+                  placeholder="Key instructions..."
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium"
                 />
               </div>
 
@@ -515,15 +356,15 @@ export const DeadlineSLATab: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider border-2 border-b-4 border-red-800 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[#937485] hover:bg-[#836475] text-white text-xs font-semibold cursor-pointer shadow-xs"
                 >
-                  Create Ticket
+                  Create
                 </button>
               </div>
             </form>
@@ -533,4 +374,3 @@ export const DeadlineSLATab: React.FC = () => {
     </div>
   );
 };
-

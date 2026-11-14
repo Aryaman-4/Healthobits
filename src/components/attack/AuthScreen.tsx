@@ -1,18 +1,13 @@
 import React, { useState } from 'react';
 import {
-  Shield,
-  Sparkles,
-  Key,
   Mail,
   Lock,
   User,
-  Check,
-  ArrowRight,
   Eye,
   EyeOff,
   AlertCircle,
   Database,
-  Zap
+  ArrowRight
 } from 'lucide-react';
 import { useAttackMode } from '../../context/AttackModeContext';
 import { sound } from '../../utils/audio';
@@ -20,278 +15,199 @@ import { sound } from '../../utils/audio';
 export const AuthScreen: React.FC = () => {
   const { loginUser, registerUser, loginAsGuest } = useAttackMode();
 
-  const [mode, setMode] = useState<'welcome' | 'login' | 'register'>('welcome');
+  const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('Aryan');
+  const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleLoginSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setIsLoading(true);
 
-    const result = await loginUser(email, password, name);
-    setIsLoading(false);
-
-    if (!result.success) {
-      setErrorMessage(result.error || 'Login failed. Please verify credentials.');
-    }
-  };
-
-  const handleRegisterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage(null);
-    setIsLoading(true);
-
-    const result = await registerUser(email, password, name);
-    setIsLoading(false);
-
-    if (!result.success) {
-      setErrorMessage(result.error || 'Registration failed.');
+    if (isRegister) {
+      const result = await registerUser(email, password, name || 'Aryan');
+      setIsLoading(false);
+      if (!result.success) {
+        setErrorMessage(result.error || 'Failed to create account.');
+      }
+    } else {
+      const result = await loginUser(email, password);
+      setIsLoading(false);
+      if (!result.success) {
+        setErrorMessage(result.error || 'Invalid email or password.');
+      }
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center items-center p-4 sm:p-6 font-sans">
-      <div className="max-w-md w-full bg-white rounded-3xl border-2 border-[#E2E8F0] border-b-6 p-6 sm:p-8 shadow-xl space-y-6">
-        {/* Header Hero */}
-        <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded-2xl bg-[#0F172A] text-white flex items-center justify-center text-3xl shadow-md mx-auto">
-            ⚡
+    <div className="min-h-screen bg-[#EEF0F6] flex flex-col justify-center items-center p-4 sm:p-6 font-sans">
+      <div className="max-w-md w-full bg-white rounded-3xl p-7 sm:p-9 shadow-sm border border-slate-100 space-y-6">
+        {/* Brand Header */}
+        <div className="text-center space-y-2">
+          <div className="w-12 h-12 rounded-2xl bg-[#937485] text-white flex items-center justify-center font-bold text-lg shadow-sm mx-auto">
+            H
           </div>
-
-          <div>
-            <h1 className="font-black text-2xl text-slate-900 tracking-tight">
-              ATTACK MODE
-            </h1>
-            <p className="font-bold text-xs uppercase tracking-wider text-blue-600 mt-0.5">
-              Logical Execution & Section System
-            </p>
-          </div>
-
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
-            <Database size={12} className="text-emerald-600" />
-            <span>Cloudflare D1 Database Persistence</span>
-          </div>
-
-          <p className="text-xs text-slate-500 font-medium max-w-xs mx-auto">
-            Log in once, and your 7-day Section System and 4-week monthly scores sync across your phone and laptop.
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            {isRegister ? 'Create an account' : 'Welcome back'}
+          </h1>
+          <p className="text-xs text-slate-500 font-medium">
+            {isRegister
+              ? 'Start organizing your weekly system and tracking performance'
+              : 'Sign in to access your days, sections, and monthly reports'}
           </p>
+        </div>
+
+        {/* Tab Switcher: Sign In vs Sign Up */}
+        <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => {
+              sound.playTap();
+              setIsRegister(false);
+              setErrorMessage(null);
+            }}
+            className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${
+              !isRegister
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              sound.playTap();
+              setIsRegister(true);
+              setErrorMessage(null);
+            }}
+            className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${
+              isRegister
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            Create Account
+          </button>
         </div>
 
         {/* Error Alert */}
         {errorMessage && (
-          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2">
+          <div className="p-3 rounded-xl bg-red-50 text-red-700 text-xs font-medium flex items-center gap-2 border border-red-100">
             <AlertCircle size={15} className="shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
-        {/* MODE 1: WELCOME SCREEN */}
-        {mode === 'welcome' && (
-          <div className="space-y-3 pt-2">
-            <button
-              onClick={() => {
-                sound.playTap();
-                setMode('register');
-              }}
-              className="w-full py-3.5 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider border-2 border-b-4 border-blue-800 active:border-b-2 active:translate-y-0.5 cursor-pointer transition-all shadow-sm flex items-center justify-center gap-2"
-            >
-              <Sparkles size={16} />
-              <span>[🚀 GET STARTED (NEW ACCOUNT)]</span>
-            </button>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {isRegister && (
+            <div className="space-y-1">
+              <label className="block text-xs font-semibold text-slate-700">
+                Full Name
+              </label>
+              <div className="relative">
+                <User size={16} className="absolute left-3.5 top-3 text-slate-400" />
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="Aryan"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#937485] focus:ring-1 focus:ring-[#937485] transition-colors"
+                />
+              </div>
+            </div>
+          )}
 
-            <button
-              onClick={() => {
-                sound.playTap();
-                setMode('login');
-              }}
-              className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-black text-xs uppercase tracking-wider border-2 border-b-4 border-slate-300 active:border-b-2 active:translate-y-0.5 cursor-pointer transition-all shadow-xs flex items-center justify-center gap-2"
-            >
-              <Key size={16} className="text-slate-500" />
-              <span>[🔑 I ALREADY HAVE AN ACCOUNT (LOG IN)]</span>
-            </button>
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              Email Address
+            </label>
+            <div className="relative">
+              <Mail size={16} className="absolute left-3.5 top-3 text-slate-400" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="name@example.com"
+                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#937485] focus:ring-1 focus:ring-[#937485] transition-colors"
+              />
+            </div>
+          </div>
 
-            <div className="pt-2 text-center">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-700">
+                Password
+              </label>
+            </div>
+            <div className="relative">
+              <Lock size={16} className="absolute left-3.5 top-3 text-slate-400" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                minLength={6}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#937485] focus:ring-1 focus:ring-[#937485] transition-colors"
+              />
               <button
-                onClick={() => {
-                  sound.playTap();
-                  loginAsGuest();
-                }}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
-                ⚡ Continue as Guest (Instant Local Demo) ➔
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
-        )}
 
-        {/* MODE 2: LOGIN FORM */}
-        {mode === 'login' && (
-          <form onSubmit={handleLoginSubmit} className="space-y-4 pt-1">
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-black uppercase text-slate-600 mb-1">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail size={16} className="absolute left-3.5 top-3 text-slate-400" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="you@domain.com"
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-                  />
-                </div>
-              </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3 px-4 rounded-xl bg-[#937485] hover:bg-[#836475] text-white font-semibold text-xs tracking-wide transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2 mt-2"
+          >
+            {isLoading ? (
+              <span>Please wait...</span>
+            ) : (
+              <span>{isRegister ? 'Create Account' : 'Sign In'}</span>
+            )}
+          </button>
+        </form>
 
-              <div>
-                <label className="block text-[11px] font-black uppercase text-slate-600 mb-1">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-3 text-slate-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-            </div>
+        {/* Divider */}
+        <div className="relative flex items-center justify-center">
+          <div className="border-t border-slate-200 w-full" />
+          <span className="bg-white px-3 text-[11px] text-slate-400 uppercase tracking-wider font-medium">
+            or
+          </span>
+        </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3.5 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider border-2 border-b-4 border-blue-800 active:border-b-2 active:translate-y-0.5 cursor-pointer transition-all shadow-sm flex items-center justify-center gap-2"
-            >
-              {isLoading ? <span>Authenticating...</span> : <span>Log In to Attack Mode</span>}
-            </button>
+        {/* Demo login */}
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => {
+              sound.playTap();
+              loginAsGuest();
+            }}
+            className="text-xs font-semibold text-[#937485] hover:text-[#7A5A6D] transition-colors cursor-pointer"
+          >
+            Explore as Guest Preview →
+          </button>
+        </div>
 
-            <div className="flex items-center justify-between text-xs font-bold text-slate-500 pt-2">
-              <button
-                type="button"
-                onClick={() => setMode('welcome')}
-                className="hover:underline cursor-pointer"
-              >
-                ← Back
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('register')}
-                className="text-blue-600 hover:underline cursor-pointer"
-              >
-                Create Account ➔
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* MODE 3: REGISTER FORM */}
-        {mode === 'register' && (
-          <form onSubmit={handleRegisterSubmit} className="space-y-4 pt-1">
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-black uppercase text-slate-600 mb-1">
-                  Your Name
-                </label>
-                <div className="relative">
-                  <User size={16} className="absolute left-3.5 top-3 text-slate-400" />
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder="e.g. Aryan"
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-black uppercase text-slate-600 mb-1">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail size={16} className="absolute left-3.5 top-3 text-slate-400" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="you@domain.com"
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-black uppercase text-slate-600 mb-1">
-                  Password (6+ chars)
-                </label>
-                <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-3 text-slate-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider border-2 border-b-4 border-emerald-800 active:border-b-2 active:translate-y-0.5 cursor-pointer transition-all shadow-sm flex items-center justify-center gap-2"
-            >
-              {isLoading ? <span>Creating Account...</span> : <span>Create Account & Start</span>}
-            </button>
-
-            <div className="flex items-center justify-between text-xs font-bold text-slate-500 pt-2">
-              <button
-                type="button"
-                onClick={() => setMode('welcome')}
-                className="hover:underline cursor-pointer"
-              >
-                ← Back
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('login')}
-                className="text-blue-600 hover:underline cursor-pointer"
-              >
-                Log In Instead ➔
-              </button>
-            </div>
-          </form>
-        )}
+        {/* Database indicator */}
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
+          <Database size={13} className="text-[#7EB982]" />
+          <span>Cloudflare D1 edge database sync</span>
+        </div>
       </div>
     </div>
   );

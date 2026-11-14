@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
 import {
+  Calendar,
   Check,
   Plus,
   Trash2,
-  Calendar,
-  Grid,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-  Zap,
-  TrendingUp,
+  Search,
+  SlidersHorizontal,
   Clock,
-  ChevronDown
+  ArrowRight,
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react';
 import { useAttackMode } from '../../context/AttackModeContext';
 import { DayOfWeek } from '../../types/attackMode';
-import { DAYS_OF_WEEK, TRIAD_SECTIONS, getTodayDayOfWeek } from '../../data/attackModeSeed';
+import { DAYS_OF_WEEK, TRIAD_SECTIONS, getTodayDayOfWeek, getTodayDateString } from '../../data/attackModeSeed';
 import { BeginnerGuideCard } from './OnboardingAndGuide';
 import { sound } from '../../utils/audio';
 
@@ -34,7 +32,10 @@ export const SectionSystemTab: React.FC = () => {
   const activeDay = state.selectedDayOfWeek;
   const { currentDayStats, allWeekStats } = metrics;
 
-  // New task inputs by section for active day
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterSection, setFilterSection] = useState<'all' | 'rich' | 'muscular' | 'intelligent'>('all');
+
+  // Input states for adding new tasks
   const [inputs, setInputs] = useState<Record<string, string>>({
     rich: '',
     muscular: '',
@@ -54,238 +55,296 @@ export const SectionSystemTab: React.FC = () => {
     handleInputChange(section, '');
   };
 
-  const activeDayTasks = state.sectionTasks.filter(t => t.dayOfWeek === activeDay);
+  const activeDayTasks = state.sectionTasks
+    .filter(t => t.dayOfWeek === activeDay)
+    .filter(t => (filterSection === 'all' ? true : t.section === filterSection))
+    .filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  const ongoingCount = state.sectionTasks.filter(t => !t.isCompleted).length;
+  const completedCount = state.sectionTasks.filter(t => t.isCompleted).length;
+  const todayCompleted = state.sectionTasks.filter(t => t.dayOfWeek === activeDay && t.isCompleted).length;
+  const todayTotal = state.sectionTasks.filter(t => t.dayOfWeek === activeDay).length;
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6 space-y-6 font-sans">
-      {/* 1. Beginner Guide Card (Collapsible & Dismissible) */}
-      <BeginnerGuideCard />
-
-      {/* 2. Top Header & Day Selector Bar */}
-      <div className="bg-white rounded-3xl border-2 border-[#E2E8F0] border-b-6 p-4 sm:p-5 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">📅</span>
-              <h2 className="font-black text-lg sm:text-xl text-slate-900 uppercase tracking-tight">
-                7-Day Section System
-              </h2>
-            </div>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Organize daily execution under the 3 Core Pillars. At week's end, completion totals roll up into your monthly score.
-            </p>
-          </div>
-
-          {/* View Toggle: Single Day vs Full Week Grid */}
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto">
-            <button
-              onClick={() => setViewMode('day')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
-                state.viewMode === 'day'
-                  ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Calendar size={13} />
-              <span>Day Focus</span>
-            </button>
-
-            <button
-              onClick={() => setViewMode('weekGrid')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
-                state.viewMode === 'weekGrid'
-                  ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Grid size={13} />
-              <span>Full Week Grid</span>
-            </button>
-          </div>
+    <div className="max-w-md mx-auto sm:max-w-4xl px-4 sm:px-6 py-5 space-y-5 font-sans">
+      {/* 1. Top Header: Date + Search + Filter */}
+      <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+        <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
+          <Calendar size={14} className="text-[#937485]" />
+          <span>
+            {activeDay === currentTodayDay ? 'Today, ' : `${activeDay}, `}
+            {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </span>
         </div>
 
-        {/* 7-Day Stepper Navigation Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar pt-1 border-t border-slate-100">
-          {DAYS_OF_WEEK.map(day => {
-            const isSelected = activeDay === day;
-            const isToday = currentTodayDay === day;
-            const dayTasks = state.sectionTasks.filter(t => t.dayOfWeek === day);
-            const doneCount = dayTasks.filter(t => t.isCompleted).length;
-
-            return (
-              <button
-                key={day}
-                onClick={() => setSelectedDayOfWeek(day)}
-                className={`px-3.5 py-2 rounded-2xl font-black text-xs uppercase tracking-wider shrink-0 transition-all cursor-pointer border-2 border-b-4 flex items-center gap-2 active:border-b-2 active:translate-y-0.5 ${
-                  isSelected
-                    ? 'bg-blue-600 border-blue-800 text-white shadow-xs'
-                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                <span>{day.slice(0, 3)}</span>
-                {isToday && (
-                  <span
-                    className={`text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase ${
-                      isSelected ? 'bg-white text-blue-700' : 'bg-blue-100 text-blue-700'
-                    }`}
-                  >
-                    Today
-                  </span>
-                )}
-                <span
-                  className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
-                    isSelected ? 'bg-blue-800 text-white' : 'bg-slate-100 text-slate-500'
-                  }`}
-                >
-                  {doneCount}/{dayTasks.length}
-                </span>
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-2">
+          {/* Day / Week View Switcher */}
+          <div className="flex bg-white rounded-xl p-0.5 shadow-2xs border border-slate-200 text-[11px] font-semibold">
+            <button
+              onClick={() => setViewMode('day')}
+              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                state.viewMode === 'day' ? 'bg-[#937485] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Today
+            </button>
+            <button
+              onClick={() => setViewMode('weekGrid')}
+              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                state.viewMode === 'weekGrid' ? 'bg-[#937485] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              All Days
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* VIEW MODE 1: DAY FOCUS (Clean 3-Section Cards) */}
-      {/* ======================================================== */}
-      {state.viewMode === 'day' && (
-        <div className="space-y-6">
-          {/* Active Day Banner with Progress Bar */}
-          <div className="bg-white rounded-3xl border-2 border-[#E2E8F0] border-b-6 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-black text-lg sm:text-xl text-slate-900 uppercase">
-                  {activeDay} Execution Plan
-                </h3>
-                {activeDay === currentTodayDay && (
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase border border-emerald-300">
-                    Active Today
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Completed {currentDayStats.completedTasks} of {currentDayStats.totalTasks} tasks today ({currentDayStats.pct}%)
-              </p>
-            </div>
+      {/* 2. Page Title */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            {state.viewMode === 'day' ? 'Today' : 'Weekly Plan'}
+          </h1>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            {state.viewMode === 'day'
+              ? `${todayCompleted} of ${todayTotal} tasks completed for ${activeDay}`
+              : '7-day overview across Rich, Muscular, and Intelligent pillars'}
+          </p>
+        </div>
+      </div>
 
-            <div className="w-full sm:w-64 space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-black text-slate-700">
-                <span>Day Completion</span>
-                <span className="font-mono text-blue-600">{currentDayStats.pct}%</span>
-              </div>
-              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-                <div
-                  className="h-full bg-blue-600 transition-all duration-300"
-                  style={{ width: `${currentDayStats.pct}%` }}
-                />
-              </div>
+      {/* 3. The 4 Palette Stat Cards (Exactly as in screenshot: Mauve, Peach, Sage Green, Coral) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* Card 1: Ongoing (Mauve) */}
+        <div className="bg-[#937485] text-white rounded-3xl p-4 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[105px]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold tracking-wide opacity-90">Ongoing</span>
+            <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
+              ⚡
             </div>
           </div>
+          <div className="mt-2">
+            <span className="text-2xl sm:text-3xl font-extrabold">{ongoingCount}</span>
+            <span className="text-[11px] ml-1 opacity-80">tasks</span>
+          </div>
+          {/* Subtle wave SVG */}
+          <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20" viewBox="0 0 100 40">
+            <path d="M0 20 Q 25 5, 50 20 T 100 20 L 100 40 L 0 40 Z" fill="currentColor" />
+          </svg>
+        </div>
 
-          {/* The 3 Core Pillar Section Cards (Exactly as in screenshot) */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {TRIAD_SECTIONS.map(sec => {
+        {/* Card 2: In Process / Today (Peach) */}
+        <div className="bg-[#ECA172] text-white rounded-3xl p-4 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[105px]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold tracking-wide opacity-90">In Process</span>
+            <Clock size={15} className="opacity-80" />
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl sm:text-3xl font-extrabold">{todayTotal - todayCompleted}</span>
+            <span className="text-[11px] ml-1 opacity-80">pending</span>
+          </div>
+          <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20" viewBox="0 0 100 40">
+            <path d="M0 25 Q 30 10, 60 25 T 100 25 L 100 40 L 0 40 Z" fill="currentColor" />
+          </svg>
+        </div>
+
+        {/* Card 3: Completed (Sage Green) */}
+        <div className="bg-[#7EB982] text-white rounded-3xl p-4 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[105px]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold tracking-wide opacity-90">Completed</span>
+            <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+              <Check size={13} strokeWidth={3} />
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl sm:text-3xl font-extrabold">{completedCount}</span>
+            <span className="text-[11px] ml-1 opacity-80">done</span>
+          </div>
+          <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20" viewBox="0 0 100 40">
+            <path d="M0 20 Q 25 35, 50 20 T 100 20 L 100 40 L 0 40 Z" fill="currentColor" />
+          </svg>
+        </div>
+
+        {/* Card 4: High Urgency (Coral) */}
+        <div className="bg-[#E67370] text-white rounded-3xl p-4 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[105px]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold tracking-wide opacity-90">P1 SLA</span>
+            <AlertCircle size={15} className="opacity-80" />
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl sm:text-3xl font-extrabold">{metrics.slaSummary.p1Active}</span>
+            <span className="text-[11px] ml-1 opacity-80">critical</span>
+          </div>
+          <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20" viewBox="0 0 100 40">
+            <path d="M0 30 Q 30 15, 60 30 T 100 30 L 100 40 L 0 40 Z" fill="currentColor" />
+          </svg>
+        </div>
+      </div>
+
+      {/* 4. Day Stepper Navigation Pills */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-1">
+        {DAYS_OF_WEEK.map(day => {
+          const isSelected = activeDay === day;
+          const isToday = currentTodayDay === day;
+          const dayTasks = state.sectionTasks.filter(t => t.dayOfWeek === day);
+          const done = dayTasks.filter(t => t.isCompleted).length;
+
+          return (
+            <button
+              key={day}
+              onClick={() => setSelectedDayOfWeek(day)}
+              className={`px-3.5 py-2 rounded-2xl text-xs font-semibold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+                isSelected
+                  ? 'bg-[#937485] text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-100'
+              }`}
+            >
+              <span>{day.slice(0, 3)}</span>
+              {isToday && (
+                <span
+                  className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full ${
+                    isSelected ? 'bg-white text-[#937485]' : 'bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  Today
+                </span>
+              )}
+              <span className="text-[10px] opacity-75">
+                {done}/{dayTasks.length}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ======================================================== */}
+      {/* VIEW MODE 1: DAY FOCUS (Cards matching screenshot) */}
+      {/* ======================================================== */}
+      {state.viewMode === 'day' && (
+        <div className="space-y-4">
+          {/* Section Filter Pills */}
+          <div className="flex items-center justify-between text-xs pt-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              {(['all', 'rich', 'muscular', 'intelligent'] as const).map(sec => (
+                <button
+                  key={sec}
+                  onClick={() => setFilterSection(sec)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all cursor-pointer ${
+                    filterSection === sec
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-white text-slate-500 hover:text-slate-900 border border-slate-100'
+                  }`}
+                >
+                  {sec === 'all' ? 'All Sections' : sec}
+                </button>
+              ))}
+            </div>
+
+            <span className="text-xs text-slate-400 font-medium hidden sm:inline">
+              {activeDayTasks.length} tasks
+            </span>
+          </div>
+
+          {/* The 3 Core Pillar Sections */}
+          <div className="space-y-4">
+            {TRIAD_SECTIONS.filter(s => (filterSection === 'all' ? true : s.id === filterSection)).map(sec => {
               const secTasks = activeDayTasks.filter(t => t.section === sec.id);
-              const doneSecCount = secTasks.filter(t => t.isCompleted).length;
 
               return (
-                <div
-                  key={sec.id}
-                  className="bg-white rounded-3xl border-2 border-[#E2E8F0] border-b-6 p-5 shadow-xs flex flex-col justify-between space-y-4"
-                >
-                  <div className="space-y-3">
-                    {/* Section Header */}
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{sec.icon}</span>
-                        <div>
-                          <h4 className="font-black text-xs sm:text-sm text-slate-900 uppercase tracking-tight">
-                            {sec.name}
-                          </h4>
-                          <span className="text-[10px] text-slate-500 font-medium">
-                            {sec.description}
-                          </span>
-                        </div>
-                      </div>
-
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sec.headerBadge}`}
-                      >
-                        {doneSecCount} / {secTasks.length}
-                      </span>
+                <div key={sec.id} className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 space-y-3.5">
+                  {/* Section Title */}
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{sec.icon}</span>
+                      <h3 className="font-bold text-xs sm:text-sm text-slate-900 tracking-tight">
+                        {sec.name}
+                      </h3>
                     </div>
+                    <span className="text-xs font-semibold text-slate-400">
+                      {secTasks.filter(t => t.isCompleted).length} / {secTasks.length} Done
+                    </span>
+                  </div>
 
-                    {/* Task Checklist Items */}
-                    <div className="space-y-2.5 pt-1">
-                      {secTasks.map(task => (
-                        <div
-                          key={task.id}
-                          className={`p-3 rounded-2xl border-2 flex items-center justify-between gap-3 transition-all ${
-                            task.isCompleted
-                              ? 'border-emerald-300 border-b-4 bg-emerald-50/40 opacity-80'
-                              : 'border-slate-200 border-b-4 hover:border-slate-300 bg-white'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            {/* Checkmark Button */}
-                            <button
-                              onClick={() => toggleSectionTask(task.id)}
-                              className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 border-2 active:translate-y-0.5 ${
-                                task.isCompleted
-                                  ? 'bg-emerald-600 border-emerald-700 text-white'
-                                  : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-transparent'
-                              }`}
-                            >
-                              <Check size={14} strokeWidth={3} />
-                            </button>
+                  {/* Tasks in this section */}
+                  <div className="space-y-2">
+                    {secTasks.map(task => (
+                      <div
+                        key={task.id}
+                        className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 transition-all border ${
+                          task.isCompleted
+                            ? 'bg-slate-50 border-slate-100 opacity-60'
+                            : 'bg-white border-slate-100 hover:border-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          {/* Round soft checkbox */}
+                          <button
+                            onClick={() => toggleSectionTask(task.id)}
+                            className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 border ${
+                              task.isCompleted
+                                ? 'bg-[#7EB982] border-[#7EB982] text-white'
+                                : 'border-slate-300 hover:border-[#937485] bg-white'
+                            }`}
+                          >
+                            {task.isCompleted && <Check size={12} strokeWidth={3} />}
+                          </button>
 
+                          <div className="min-w-0 flex-1">
                             <span
-                              className={`text-xs font-bold leading-snug break-words ${
+                              className={`text-xs font-semibold leading-snug break-words ${
                                 task.isCompleted ? 'line-through text-slate-400' : 'text-slate-800'
                               }`}
                             >
                               {task.title}
                             </span>
+                            <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400">
+                              <span>{task.allocationMinutes}m</span>
+                              {task.deadlineTime && (
+                                <>
+                                  <span>•</span>
+                                  <span>Due {task.deadlineTime}</span>
+                                </>
+                              )}
+                            </div>
                           </div>
-
-                          <button
-                            onClick={() => deleteSectionTask(task.id)}
-                            className="text-slate-300 hover:text-red-500 transition-colors cursor-pointer p-1 shrink-0"
-                            title="Delete task"
-                          >
-                            <Trash2 size={13} />
-                          </button>
                         </div>
-                      ))}
 
-                      {secTasks.length === 0 && (
-                        <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
-                          No tasks set for this section on {activeDay}.
-                        </div>
-                      )}
-                    </div>
+                        <button
+                          onClick={() => deleteSectionTask(task.id)}
+                          className="text-slate-300 hover:text-red-500 transition-colors p-1 cursor-pointer shrink-0"
+                          title="Delete"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))}
+
+                    {secTasks.length === 0 && (
+                      <p className="text-xs text-slate-400 italic py-2">
+                        No tasks set for this section on {activeDay}.
+                      </p>
+                    )}
                   </div>
 
-                  {/* Inline Quick Add Task for this Section */}
+                  {/* Clean inline task add form */}
                   <form
                     onSubmit={e => handleAddTaskSubmit(activeDay, sec.id, e)}
-                    className="pt-2 border-t border-slate-100"
+                    className="pt-2 border-t border-slate-100 flex gap-2"
                   >
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={inputs[sec.id] || ''}
-                        onChange={e => handleInputChange(sec.id, e.target.value)}
-                        placeholder={`+ Add task under ${sec.shortName}...`}
-                        className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
-                      />
-                      <button
-                        type="submit"
-                        className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold cursor-pointer transition-all active:translate-y-0.5"
-                      >
-                        + Add
-                      </button>
-                    </div>
+                    <input
+                      type="text"
+                      value={inputs[sec.id] || ''}
+                      onChange={e => handleInputChange(sec.id, e.target.value)}
+                      placeholder={`Add task under ${sec.shortName}...`}
+                      className="flex-1 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#937485] focus:bg-white transition-colors"
+                    />
+                    <button
+                      type="submit"
+                      className="px-3.5 py-2 rounded-xl bg-[#937485] hover:bg-[#836475] text-white text-xs font-semibold cursor-pointer transition-colors shadow-2xs"
+                    >
+                      Add
+                    </button>
                   </form>
                 </div>
               );
@@ -295,79 +354,79 @@ export const SectionSystemTab: React.FC = () => {
       )}
 
       {/* ======================================================== */}
-      {/* VIEW MODE 2: FULL WEEK GRID (Notion-style side-by-side) */}
+      {/* VIEW MODE 2: PROJECTS / ALL DAYS (Screen 2 in screenshot) */}
       {/* ======================================================== */}
       {state.viewMode === 'weekGrid' && (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {DAYS_OF_WEEK.map(day => {
               const dayTasks = state.sectionTasks.filter(t => t.dayOfWeek === day);
+              const done = dayTasks.filter(t => t.isCompleted).length;
+              const total = dayTasks.length;
+              const pct = total > 0 ? Math.round((done / total) * 100) : 0;
               const isToday = currentTodayDay === day;
+
+              // SVG Circle radius math
+              const radius = 22;
+              const circumference = 2 * Math.PI * radius;
+              const strokeDashoffset = circumference - (pct / 100) * circumference;
 
               return (
                 <div
                   key={day}
-                  className={`bg-white rounded-3xl border-2 border-b-6 p-4 shadow-xs space-y-3 ${
-                    isToday ? 'border-blue-500 ring-2 ring-blue-200' : 'border-[#E2E8F0]'
+                  onClick={() => {
+                    setSelectedDayOfWeek(day);
+                    setViewMode('day');
+                  }}
+                  className={`bg-white rounded-3xl p-5 shadow-xs border transition-all cursor-pointer hover:border-[#937485] flex items-center justify-between gap-4 ${
+                    isToday ? 'border-[#937485] ring-2 ring-[#937485]/10' : 'border-slate-100'
                   }`}
                 >
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <div className="space-y-1.5 min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="font-black text-sm text-slate-900 uppercase">
-                        {day}
-                      </h4>
+                      <h3 className="font-bold text-base text-slate-900">{day}</h3>
                       {isToday && (
-                        <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-blue-600 text-white uppercase">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#937485] text-white">
                           Today
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] font-bold text-slate-500">
-                      {dayTasks.filter(t => t.isCompleted).length} / {dayTasks.length} Done
-                    </span>
+                    <p className="text-xs text-slate-500 font-medium">
+                      {done} of {total} tasks completed
+                    </p>
+                    <div className="flex items-center gap-1 text-[11px] text-[#937485] font-semibold pt-1">
+                      <span>View Day Plan</span>
+                      <ArrowRight size={12} />
+                    </div>
                   </div>
 
-                  {/* 3 Sections Collapsible list */}
-                  <div className="space-y-3">
-                    {TRIAD_SECTIONS.map(sec => {
-                      const secTasks = dayTasks.filter(t => t.section === sec.id);
-
-                      return (
-                        <div key={sec.id} className="space-y-1.5">
-                          <div className="flex items-center gap-1.5 text-[11px] font-black uppercase text-slate-700">
-                            <span>{sec.icon}</span>
-                            <span>{sec.name}</span>
-                          </div>
-
-                          <div className="space-y-1 pl-4">
-                            {secTasks.map(t => (
-                              <div
-                                key={t.id}
-                                className="flex items-center gap-2 group text-xs font-semibold"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={t.isCompleted}
-                                  onChange={() => toggleSectionTask(t.id)}
-                                  className="w-3.5 h-3.5 rounded text-blue-600 cursor-pointer"
-                                />
-                                <span
-                                  className={`flex-1 truncate ${
-                                    t.isCompleted ? 'line-through text-slate-400' : 'text-slate-800'
-                                  }`}
-                                >
-                                  {t.title}
-                                </span>
-                              </div>
-                            ))}
-
-                            {secTasks.length === 0 && (
-                              <p className="text-[10px] text-slate-400 italic">No tasks set</p>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                  {/* Circular Progress Ring (Matching Screen 2 in screenshot!) */}
+                  <div className="relative w-16 h-16 flex items-center justify-center shrink-0">
+                    <svg className="w-16 h-16 transform -rotate-90">
+                      <circle
+                        cx="32"
+                        cy="32"
+                        r={radius}
+                        stroke="#EEF0F6"
+                        strokeWidth="5"
+                        fill="transparent"
+                      />
+                      <circle
+                        cx="32"
+                        cy="32"
+                        r={radius}
+                        stroke="#7EB982"
+                        strokeWidth="5"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={strokeDashoffset}
+                        strokeLinecap="round"
+                        fill="transparent"
+                        className="transition-all duration-500"
+                      />
+                    </svg>
+                    <span className="absolute font-bold text-xs text-slate-800">
+                      {pct}%
+                    </span>
                   </div>
                 </div>
               );
