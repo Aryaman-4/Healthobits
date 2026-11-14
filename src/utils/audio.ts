@@ -101,6 +101,10 @@ class SoundEffects {
     }
   }
 
+  public playComplete() {
+    this.playCheck();
+  }
+
   // ★ Keystone check celebration (golden chime chord)
   public playKeystoneCheck() {
     if (!this.soundEnabled) return;
