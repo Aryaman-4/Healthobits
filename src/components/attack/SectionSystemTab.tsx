@@ -4,16 +4,16 @@ import {
   Check,
   Plus,
   Trash2,
-  Search,
-  SlidersHorizontal,
   Clock,
   ArrowRight,
-  TrendingUp,
-  AlertCircle
+  ShieldAlert,
+  RotateCcw,
+  Sparkles,
+  HelpCircle
 } from 'lucide-react';
 import { useAttackMode } from '../../context/AttackModeContext';
 import { DayOfWeek } from '../../types/attackMode';
-import { DAYS_OF_WEEK, TRIAD_SECTIONS, getTodayDayOfWeek, getTodayDateString } from '../../data/attackModeSeed';
+import { DAYS_OF_WEEK, TRIAD_SECTIONS, getTodayDayOfWeek } from '../../data/attackModeSeed';
 import { BeginnerGuideCard } from './OnboardingAndGuide';
 import { sound } from '../../utils/audio';
 
@@ -25,6 +25,8 @@ export const SectionSystemTab: React.FC = () => {
     addSectionTask,
     toggleSectionTask,
     deleteSectionTask,
+    openSherlockModal,
+    openSundayResetModal,
     metrics
   } = useAttackMode();
 
@@ -32,10 +34,8 @@ export const SectionSystemTab: React.FC = () => {
   const activeDay = state.selectedDayOfWeek;
   const { currentDayStats, allWeekStats } = metrics;
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [filterSection, setFilterSection] = useState<'all' | 'rich' | 'muscular' | 'intelligent'>('all');
 
-  // Input states for adding new tasks
   const [inputs, setInputs] = useState<Record<string, string>>({
     rich: '',
     muscular: '',
@@ -57,17 +57,25 @@ export const SectionSystemTab: React.FC = () => {
 
   const activeDayTasks = state.sectionTasks
     .filter(t => t.dayOfWeek === activeDay)
-    .filter(t => (filterSection === 'all' ? true : t.section === filterSection))
-    .filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    .filter(t => (filterSection === 'all' ? true : t.section === filterSection));
 
   const ongoingCount = state.sectionTasks.filter(t => !t.isCompleted).length;
   const completedCount = state.sectionTasks.filter(t => t.isCompleted).length;
   const todayCompleted = state.sectionTasks.filter(t => t.dayOfWeek === activeDay && t.isCompleted).length;
   const todayTotal = state.sectionTasks.filter(t => t.dayOfWeek === activeDay).length;
+  const todayPct = todayTotal > 0 ? Math.round((todayCompleted / todayTotal) * 100) : 0;
+
+  // SVG Progress Ring calculations for Today
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (todayPct / 100) * circumference;
 
   return (
     <div className="max-w-md mx-auto sm:max-w-4xl px-4 sm:px-6 py-5 space-y-5 font-sans">
-      {/* 1. Top Header: Date + Search + Filter */}
+      {/* 1. Beginner Guide Card (Collapsible) */}
+      <BeginnerGuideCard />
+
+      {/* 2. Top Header: Date, Quick Buttons & View Switcher */}
       <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
         <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
           <Calendar size={14} className="text-[#937485]" />
@@ -78,6 +86,26 @@ export const SectionSystemTab: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Sherlock Protocol (When You Mess Up) Trigger Button */}
+          <button
+            onClick={openSherlockModal}
+            className="px-2.5 py-1 rounded-xl bg-[#ECA172]/15 hover:bg-[#ECA172]/25 text-[#D17E49] text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+            title="Sherlock Holmes Contingency Protocol (When You Mess Up)"
+          >
+            <span>🔍</span>
+            <span className="hidden sm:inline">Come Here: Reset</span>
+          </button>
+
+          {/* Sunday Reset Trigger Button */}
+          <button
+            onClick={openSundayResetModal}
+            className="px-2.5 py-1 rounded-xl bg-[#937485]/15 hover:bg-[#937485]/25 text-[#937485] text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+            title="Sunday Weekly Review & New Week Setup"
+          >
+            <span>🌅</span>
+            <span className="hidden sm:inline">Sunday Reset</span>
+          </button>
+
           {/* Day / Week View Switcher */}
           <div className="flex bg-white rounded-xl p-0.5 shadow-2xs border border-slate-200 text-[11px] font-semibold">
             <button
@@ -100,21 +128,53 @@ export const SectionSystemTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Page Title */}
-      <div className="flex items-center justify-between">
+      {/* 3. Today Hero with Circular Progress Ring */}
+      <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            {state.viewMode === 'day' ? 'Today' : 'Weekly Plan'}
+          <span className="text-xs font-bold text-[#937485] uppercase tracking-wider">
+            Daily Execution
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-0.5">
+            {state.viewMode === 'day' ? activeDay : '7-Day Overview'}
           </h1>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
-            {state.viewMode === 'day'
-              ? `${todayCompleted} of ${todayTotal} tasks completed for ${activeDay}`
-              : '7-day overview across Rich, Muscular, and Intelligent pillars'}
+          <p className="text-xs text-slate-500 font-medium mt-1">
+            {todayCompleted} of {todayTotal} tasks completed for {activeDay}
           </p>
+        </div>
+
+        {/* Circular Progress Ring on Today Page */}
+        <div className="relative w-18 h-18 sm:w-20 sm:h-20 flex items-center justify-center shrink-0">
+          <svg className="w-18 h-18 sm:w-20 sm:h-20 transform -rotate-90">
+            <circle
+              cx="36"
+              cy="36"
+              r={radius}
+              stroke="#EEF0F6"
+              strokeWidth="6"
+              fill="transparent"
+            />
+            <circle
+              cx="36"
+              cy="36"
+              r={radius}
+              stroke="#7EB982"
+              strokeWidth="6"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              fill="transparent"
+              className="transition-all duration-500"
+            />
+          </svg>
+          <div className="absolute text-center">
+            <span className="font-extrabold text-xs sm:text-sm text-slate-900 font-mono">
+              {todayPct}%
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* 3. The 4 Palette Stat Cards (Exactly as in screenshot: Mauve, Peach, Sage Green, Coral) */}
+      {/* 4. The 4 Stat Cards (Mauve, Peach, Sage Green, Coral) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {/* Card 1: Ongoing (Mauve) */}
         <div className="bg-[#937485] text-white rounded-3xl p-4 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[105px]">
@@ -128,7 +188,6 @@ export const SectionSystemTab: React.FC = () => {
             <span className="text-2xl sm:text-3xl font-extrabold">{ongoingCount}</span>
             <span className="text-[11px] ml-1 opacity-80">tasks</span>
           </div>
-          {/* Subtle wave SVG */}
           <svg className="absolute -bottom-1 -right-2 w-24 h-10 opacity-20" viewBox="0 0 100 40">
             <path d="M0 20 Q 25 5, 50 20 T 100 20 L 100 40 L 0 40 Z" fill="currentColor" />
           </svg>
@@ -170,7 +229,7 @@ export const SectionSystemTab: React.FC = () => {
         <div className="bg-[#E67370] text-white rounded-3xl p-4 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[105px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold tracking-wide opacity-90">P1 SLA</span>
-            <AlertCircle size={15} className="opacity-80" />
+            <Clock size={15} className="opacity-80" />
           </div>
           <div className="mt-2">
             <span className="text-2xl sm:text-3xl font-extrabold">{metrics.slaSummary.p1Active}</span>
@@ -182,7 +241,7 @@ export const SectionSystemTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Day Stepper Navigation Pills */}
+      {/* 5. Day Stepper Navigation Pills */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-1">
         {DAYS_OF_WEEK.map(day => {
           const isSelected = activeDay === day;
@@ -278,7 +337,6 @@ export const SectionSystemTab: React.FC = () => {
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                          {/* Round soft checkbox */}
                           <button
                             onClick={() => toggleSectionTask(task.id)}
                             className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 border ${
@@ -327,7 +385,7 @@ export const SectionSystemTab: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Clean inline task add form */}
+                  {/* Inline Task Add */}
                   <form
                     onSubmit={e => handleAddTaskSubmit(activeDay, sec.id, e)}
                     className="pt-2 border-t border-slate-100 flex gap-2"
@@ -366,10 +424,9 @@ export const SectionSystemTab: React.FC = () => {
               const pct = total > 0 ? Math.round((done / total) * 100) : 0;
               const isToday = currentTodayDay === day;
 
-              // SVG Circle radius math
-              const radius = 22;
-              const circumference = 2 * Math.PI * radius;
-              const strokeDashoffset = circumference - (pct / 100) * circumference;
+              const rad = 22;
+              const circ = 2 * Math.PI * rad;
+              const off = circ - (pct / 100) * circ;
 
               return (
                 <div
@@ -400,25 +457,17 @@ export const SectionSystemTab: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Circular Progress Ring (Matching Screen 2 in screenshot!) */}
                   <div className="relative w-16 h-16 flex items-center justify-center shrink-0">
                     <svg className="w-16 h-16 transform -rotate-90">
+                      <circle cx="32" cy="32" r={rad} stroke="#EEF0F6" strokeWidth="5" fill="transparent" />
                       <circle
                         cx="32"
                         cy="32"
-                        r={radius}
-                        stroke="#EEF0F6"
-                        strokeWidth="5"
-                        fill="transparent"
-                      />
-                      <circle
-                        cx="32"
-                        cy="32"
-                        r={radius}
+                        r={rad}
                         stroke="#7EB982"
                         strokeWidth="5"
-                        strokeDasharray={circumference}
-                        strokeDashoffset={strokeDashoffset}
+                        strokeDasharray={circ}
+                        strokeDashoffset={off}
                         strokeLinecap="round"
                         fill="transparent"
                         className="transition-all duration-500"

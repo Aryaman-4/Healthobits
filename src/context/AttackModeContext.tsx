@@ -6,6 +6,10 @@ import {
   SLATicket,
   MonthlyTarget,
   WeekScorecard,
+  MonthlyHistoryRecord,
+  DataDropEntry,
+  DataDropType,
+  SherlockCaseLog,
   UserAccount,
   DayOfWeek,
   TriadCategory,
@@ -20,27 +24,40 @@ import {
 } from '../data/attackModeSeed';
 import { sound } from '../utils/audio';
 
-const STORAGE_KEY = 'attack_mode_state_v2';
+const STORAGE_KEY = 'attack_mode_state_v3';
 
 interface AttackModeContextType {
   state: AttackModeState;
-  // Auth & Account
+  // Auth
   loginUser: (email: string, pass: string, name?: string) => Promise<{ success: boolean; error?: string }>;
   registerUser: (email: string, pass: string, name: string) => Promise<{ success: boolean; error?: string }>;
   loginAsGuest: () => void;
   logoutUser: () => void;
-  // Navigation & Tabs
+  // Navigation & View
   setActiveTab: (tab: 'sections' | 'stats' | 'sla' | 'account') => void;
   setSelectedDayOfWeek: (day: DayOfWeek) => void;
   setViewMode: (mode: 'day' | 'weekGrid') => void;
   toggleAnchorMode: () => void;
   nextCreed: () => void;
   setDailyQuotaX: (x: number) => void;
-  // Section Tasks (The Screenshot System)
+  // Section Tasks
   addSectionTask: (day: DayOfWeek, section: 'rich' | 'muscular' | 'intelligent', title: string, allocMinutes?: number) => void;
   toggleSectionTask: (id: string) => void;
   deleteSectionTask: (id: string) => void;
-  // SLA Management
+  // Sunday Reset & Weekly Archive Engine
+  archiveWeekAndReset: (nextWeekTargetX: number, keepRecurringTasks: boolean) => void;
+  // Data Drop (Center '+' feature)
+  addDataDrop: (content: string, type: DataDropType) => void;
+  deleteDataDrop: (id: string) => void;
+  openDataDropModal: () => void;
+  closeDataDropModal: () => void;
+  // Sherlock Holmes Contingency Protocol (Come Here)
+  addSherlockLog: (log: { whatHappened: string; whyHappened: string; howToSolve: string; contingencyPlan: string }) => void;
+  openSherlockModal: () => void;
+  closeSherlockModal: () => void;
+  openSundayResetModal: () => void;
+  closeSundayResetModal: () => void;
+  // SLA
   addSLATicket: (ticketData: {
     title: string;
     category: TriadCategory;
@@ -57,12 +74,11 @@ interface AttackModeContextType {
   decrementMonthlyTarget: (id: string, step?: number) => void;
   addMonthlyTarget: (targetData: Omit<MonthlyTarget, 'id'>) => void;
   deleteMonthlyTarget: (id: string) => void;
-  // Beginner Guide & Onboarding
+  // Guide & Settings
   dismissGuide: () => void;
   reopenGuide: () => void;
   openOnboarding: () => void;
   closeOnboarding: () => void;
-  // Settings & Sound
   toggleSound: () => boolean;
   setMutationLog: (log: string) => void;
   // Exporters
@@ -89,6 +105,7 @@ interface AttackModeContextType {
       fourWeekTarget: number;
       monthPct: number;
       overallGrade: 'S' | 'A' | 'B' | 'C';
+      monthlyHistory: MonthlyHistoryRecord[];
     };
     slaSummary: {
       p1Active: number;
@@ -131,7 +148,6 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
 
     try {
-      // Try Cloudflare D1 backend login endpoint first
       const resp = await fetch('/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -156,10 +172,9 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return { success: true };
       }
     } catch (err) {
-      console.info('Backend unreachable, using local persistence:', err);
+      console.info('Backend unreachable, using local fallback:', err);
     }
 
-    // Local Persistence Fallback (100% reliable)
     const displayName = name || email.split('@')[0];
     setState(prev => ({
       ...prev,
@@ -204,7 +219,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             syncStatus: 'synced',
             lastSyncedAt: new Date().toISOString()
           },
-          isOnboardingOpen: true // Open beginner tutorial on first sign-up!
+          isOnboardingOpen: true
         }));
         sound.playFanfare();
         return { success: true };
@@ -237,8 +252,8 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       account: {
         userId: 'usr_guest_demo',
-        email: 'guest.adventurer@attackmode.dev',
-        name: 'Aryan (Guest)',
+        email: 'adventurer@attackmode.dev',
+        name: 'Aryan',
         isLoggedIn: true,
         syncStatus: 'synced',
         lastSyncedAt: new Date().toISOString()
@@ -257,7 +272,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }));
   };
 
-  // Navigation Handlers
+  // Navigation
   const setActiveTab = (tab: 'sections' | 'stats' | 'sla' | 'account') => {
     sound.playTap();
     setState(prev => ({ ...prev, activeTab: tab }));
@@ -302,7 +317,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
   };
 
-  // Section Task Handlers (Screenshot System)
+  // Section Tasks
   const addSectionTask = (
     day: DayOfWeek,
     section: 'rich' | 'muscular' | 'intelligent',
@@ -346,7 +361,6 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       if (newlyCompleted) {
         sound.playCheck();
-        // Check if all tasks for that day are complete
         const targetDay = prev.sectionTasks.find(t => t.id === id)?.dayOfWeek;
         if (targetDay) {
           const dayTasks = updated.filter(t => t.dayOfWeek === targetDay);
@@ -376,7 +390,132 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }));
   };
 
-  // SLA Tickets Handlers
+  // Sunday Reset & Weekly Archive Engine
+  const archiveWeekAndReset = (nextWeekTargetX: number, keepRecurringTasks: boolean) => {
+    sound.playFanfare();
+    try {
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    } catch (e) {}
+
+    const completedThisWeek = state.sectionTasks.filter(t => t.isCompleted).length;
+    const targetThisWeek = state.dailyQuotaX * 7;
+    const weekPct = Math.round((completedThisWeek / targetThisWeek) * 100);
+
+    let grade: 'S' | 'A' | 'B' | 'C' = 'B';
+    if (weekPct >= 95) grade = 'S';
+    else if (weekPct >= 85) grade = 'A';
+    else if (weekPct >= 70) grade = 'B';
+    else grade = 'C';
+
+    setState(prev => {
+      // Find current active week or advance
+      const currentActiveIndex = prev.weeklyScorecards.findIndex(sc => sc.completedTasks === 0);
+      const targetIndex = currentActiveIndex !== -1 ? currentActiveIndex : 0;
+
+      const updatedScorecards = prev.weeklyScorecards.map((sc, idx) => {
+        if (idx === targetIndex) {
+          return {
+            ...sc,
+            completedTasks: completedThisWeek,
+            targetTasks: targetThisWeek,
+            grade,
+            slaOnTimeRate: 95
+          };
+        }
+        return sc;
+      });
+
+      // Reset task states for fresh sprint
+      const nextTasks = keepRecurringTasks
+        ? prev.sectionTasks.map(t => ({ ...t, isCompleted: false, completedAt: undefined }))
+        : prev.sectionTasks;
+
+      return {
+        ...prev,
+        dailyQuotaX: nextWeekTargetX,
+        weeklyScorecards: updatedScorecards,
+        sectionTasks: nextTasks,
+        selectedDayOfWeek: 'Monday',
+        isSundayResetModalOpen: false
+      };
+    });
+  };
+
+  // Data Drop (Center '+' feature)
+  const addDataDrop = (content: string, type: DataDropType) => {
+    if (!content.trim()) return;
+    sound.playCheck();
+
+    const now = new Date();
+    const dateFormatted = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const timeFormatted = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    const newDrop: DataDropEntry = {
+      id: `drop-${Date.now()}`,
+      content: content.trim(),
+      type,
+      createdAt: `${dateFormatted} • ${timeFormatted}`
+    };
+
+    setState(prev => ({
+      ...prev,
+      dataDrops: [newDrop, ...prev.dataDrops],
+      isDataDropModalOpen: false
+    }));
+  };
+
+  const deleteDataDrop = (id: string) => {
+    sound.playTap();
+    setState(prev => ({
+      ...prev,
+      dataDrops: prev.dataDrops.filter(d => d.id !== id)
+    }));
+  };
+
+  const openDataDropModal = () => {
+    sound.playTap();
+    setState(prev => ({ ...prev, isDataDropModalOpen: true }));
+  };
+
+  const closeDataDropModal = () => {
+    setState(prev => ({ ...prev, isDataDropModalOpen: false }));
+  };
+
+  // Sherlock Holmes Contingency Protocol (Come Here)
+  const addSherlockLog = (log: { whatHappened: string; whyHappened: string; howToSolve: string; contingencyPlan: string }) => {
+    sound.playLevelUp();
+    const newLog: SherlockCaseLog = {
+      id: `case-${Date.now()}`,
+      createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      ...log
+    };
+
+    setState(prev => ({
+      ...prev,
+      sherlockLogs: [newLog, ...prev.sherlockLogs],
+      isSherlockModalOpen: false
+    }));
+  };
+
+  const openSherlockModal = () => {
+    sound.playTap();
+    setState(prev => ({ ...prev, isSherlockModalOpen: true }));
+  };
+
+  const closeSherlockModal = () => {
+    setState(prev => ({ ...prev, isSherlockModalOpen: false }));
+  };
+
+  const openSundayResetModal = () => {
+    sound.playTap();
+    setState(prev => ({ ...prev, isSundayResetModalOpen: true }));
+  };
+
+  const closeSundayResetModal = () => {
+    setState(prev => ({ ...prev, isSundayResetModalOpen: false }));
+  };
+
+  // SLA Tickets
   const addSLATicket = (ticketData: {
     title: string;
     category: TriadCategory;
@@ -459,7 +598,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }));
   };
 
-  // Monthly Targets Handlers
+  // Monthly Targets
   const incrementMonthlyTarget = (id: string, step: number = 1) => {
     sound.playTap();
     setState(prev => ({
@@ -500,7 +639,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }));
   };
 
-  // Beginner Guide & Onboarding
+  // Guide & Settings
   const dismissGuide = () => {
     sound.playTap();
     setState(prev => ({ ...prev, isGuideDismissed: true }));
@@ -517,11 +656,9 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const closeOnboarding = () => {
-    sound.playTap();
     setState(prev => ({ ...prev, isOnboardingOpen: false }));
   };
 
-  // Sound Toggle
   const toggleSound = () => {
     const isNowEnabled = sound.toggleSound();
     setState(prev => ({ ...prev, soundEnabled: isNowEnabled }));
@@ -532,7 +669,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setState(prev => ({ ...prev, mutationLog: log }));
   };
 
-  // Data Exporters
+  // Exporters
   const exportMarkdown = () => {
     sound.playTap();
     const today = getTodayDateString();
@@ -568,17 +705,32 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
     md += `\n`;
 
-    md += `## 4. V.IMP Monthly Targets\n`;
-    state.monthlyTargets.forEach(m => {
-      const pct = Math.round((m.currentCount / m.targetCount) * 100);
-      md += `- **${m.title}**: ${m.currentCount} / ${m.targetCount} ${m.unit} (${pct}%)\n`;
+    md += `## 4. Multi-Month History Log\n`;
+    state.monthlyHistory.forEach(m => {
+      md += `- **${m.monthName}**: ${m.completedTasks} / ${m.targetTasks} Tasks (${m.performancePct}%) — Grade: **${m.grade}**\n`;
+    });
+    md += `\n`;
+
+    md += `## 5. Data Drops (Insights, Habits, Behaviors)\n`;
+    state.dataDrops.forEach(d => {
+      md += `- **[${d.type.toUpperCase()}]** (${d.createdAt}): ${d.content}\n`;
+    });
+    md += `\n`;
+
+    md += `## 6. Sherlock Holmes Case Logs (Contingency Breakdowns)\n`;
+    state.sherlockLogs.forEach(c => {
+      md += `### Case on ${c.createdAt}\n`;
+      md += `- **What Happened:** ${c.whatHappened}\n`;
+      md += `- **Why It Happened:** ${c.whyHappened}\n`;
+      md += `- **Solution:** ${c.howToSolve}\n`;
+      md += `- **Contingency Plan:** ${c.contingencyPlan}\n\n`;
     });
 
     const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `AttackMode_SectionSystem_${today}.md`;
+    link.download = `AttackMode_System_Report_${today}.md`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -587,26 +739,53 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     sound.playTap();
     const today = getTodayDateString();
 
-    const headers = ['Day', 'Section', 'Task_Title', 'Allocation_Mins', 'Status'];
-    const rows: string[][] = state.sectionTasks.map(t => [
-      t.dayOfWeek,
-      t.section.toUpperCase(),
-      `"${t.title.replace(/"/g, '""')}"`,
-      `${t.allocationMinutes}m`,
-      t.isCompleted ? 'Completed' : 'Pending'
-    ]);
+    const headers = ['Record_Type', 'Day_or_Month', 'Section_or_Type', 'Title_or_Content', 'Status', 'Date'];
+    const rows: string[][] = [];
+
+    state.sectionTasks.forEach(t => {
+      rows.push([
+        'DailyTask',
+        t.dayOfWeek,
+        t.section.toUpperCase(),
+        `"${t.title.replace(/"/g, '""')}"`,
+        t.isCompleted ? 'Completed' : 'Pending',
+        today
+      ]);
+    });
+
+    state.dataDrops.forEach(d => {
+      rows.push([
+        'DataDrop',
+        d.createdAt,
+        d.type.toUpperCase(),
+        `"${d.content.replace(/"/g, '""')}"`,
+        'Logged',
+        today
+      ]);
+    });
+
+    state.monthlyHistory.forEach(m => {
+      rows.push([
+        'MonthlyHistory',
+        m.monthName,
+        `Grade_${m.grade}`,
+        `${m.completedTasks}/${m.targetTasks} (${m.performancePct}%)`,
+        'Archived',
+        m.monthKey
+      ]);
+    });
 
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `AttackMode_SectionSystem_${today}.csv`;
+    link.download = `AttackMode_Data_${today}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
 
-  // Metrics computation
+  // Metrics
   const metrics = useMemo(() => {
     const currentDayTasks = state.sectionTasks.filter(t => t.dayOfWeek === state.selectedDayOfWeek);
     const currentDayCompleted = currentDayTasks.filter(t => t.isCompleted).length;
@@ -655,7 +834,8 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         fourWeekTotalCompleted,
         fourWeekTarget,
         monthPct,
-        overallGrade
+        overallGrade,
+        monthlyHistory: state.monthlyHistory
       },
       slaSummary: {
         p1Active,
@@ -664,7 +844,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         resolvedCount
       }
     };
-  }, [state.sectionTasks, state.selectedDayOfWeek, state.dailyQuotaX, state.weeklyScorecards, state.slaTickets]);
+  }, [state.sectionTasks, state.selectedDayOfWeek, state.dailyQuotaX, state.weeklyScorecards, state.slaTickets, state.monthlyHistory]);
 
   return (
     <AttackModeContext.Provider
@@ -683,6 +863,16 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         addSectionTask,
         toggleSectionTask,
         deleteSectionTask,
+        archiveWeekAndReset,
+        addDataDrop,
+        deleteDataDrop,
+        openDataDropModal,
+        closeDataDropModal,
+        addSherlockLog,
+        openSherlockModal,
+        closeSherlockModal,
+        openSundayResetModal,
+        closeSundayResetModal,
         addSLATicket,
         resolveTicket,
         deleteTicket,

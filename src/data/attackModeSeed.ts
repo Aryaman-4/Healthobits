@@ -1,10 +1,12 @@
 import {
   AttackModeState,
   SectionTask,
-  AttackTask,
   SLATicket,
   MonthlyTarget,
   WeekScorecard,
+  MonthlyHistoryRecord,
+  DataDropEntry,
+  SherlockCaseLog,
   DayOfWeek
 } from '../types/attackMode';
 
@@ -31,9 +33,9 @@ export const TRIAD_SECTIONS = [
     name: 'BECOME INCREDIBLY RICH',
     shortName: 'Rich',
     icon: '💰',
-    colorHex: '#10B981',
-    bgClass: 'bg-emerald-50 text-emerald-900 border-emerald-300',
-    headerBadge: 'bg-emerald-600 text-white',
+    colorHex: '#937485',
+    bgClass: 'bg-[#937485]/10 text-[#937485] border-[#937485]/20',
+    headerBadge: 'bg-[#937485] text-white',
     description: 'Wealth velocity, high-leverage freelancing, products, and capital building.'
   },
   {
@@ -41,9 +43,9 @@ export const TRIAD_SECTIONS = [
     name: 'BECOME INCREDIBLY MUSCULAR, FLEXIBLE',
     shortName: 'Muscular',
     icon: '💪',
-    colorHex: '#EF4444',
-    bgClass: 'bg-red-50 text-red-900 border-red-300',
-    headerBadge: 'bg-red-600 text-white',
+    colorHex: '#ECA172',
+    bgClass: 'bg-[#ECA172]/10 text-[#ECA172] border-[#ECA172]/20',
+    headerBadge: 'bg-[#ECA172] text-white',
     description: 'Calisthenics strength, karate, yoga, flexibility, and physical vitality.'
   },
   {
@@ -51,40 +53,40 @@ export const TRIAD_SECTIONS = [
     name: 'BECOME INCREDIBLY INTELLIGENT, SMART',
     shortName: 'Intelligent',
     icon: '🧠',
-    colorHex: '#3B82F6',
-    bgClass: 'bg-blue-50 text-blue-900 border-blue-300',
-    headerBadge: 'bg-blue-600 text-white',
+    colorHex: '#7EB982',
+    bgClass: 'bg-[#7EB982]/10 text-[#7EB982] border-[#7EB982]/20',
+    headerBadge: 'bg-[#7EB982] text-white',
     description: 'Algorithm practice, deep reading, meditation, and system architecture.'
   }
 ];
 
 export const TRIAD_CONFIG: Record<string, { label: string; icon: string; badgeClass: string; bgClass: string; colorHex: string }> = {
   rich: {
-    label: 'RICH',
+    label: 'Rich',
     icon: '💰',
-    badgeClass: 'bg-emerald-600 text-white',
-    bgClass: 'bg-emerald-50 text-emerald-900 border-emerald-300',
-    colorHex: '#10B981'
+    badgeClass: 'bg-[#937485] text-white',
+    bgClass: 'bg-[#937485]/10 text-[#937485] border-[#937485]/20',
+    colorHex: '#937485'
   },
   muscular: {
-    label: 'MUSCULAR',
+    label: 'Muscular',
     icon: '💪',
-    badgeClass: 'bg-red-600 text-white',
-    bgClass: 'bg-red-50 text-red-900 border-red-300',
-    colorHex: '#EF4444'
+    badgeClass: 'bg-[#ECA172] text-white',
+    bgClass: 'bg-[#ECA172]/10 text-[#ECA172] border-[#ECA172]/20',
+    colorHex: '#ECA172'
   },
   intelligent: {
-    label: 'INTELLIGENT',
+    label: 'Intelligent',
     icon: '🧠',
-    badgeClass: 'bg-blue-600 text-white',
-    bgClass: 'bg-blue-50 text-blue-900 border-blue-300',
-    colorHex: '#3B82F6'
+    badgeClass: 'bg-[#7EB982] text-white',
+    bgClass: 'bg-[#7EB982]/10 text-[#7EB982] border-[#7EB982]/20',
+    colorHex: '#7EB982'
   },
   mundane: {
-    label: 'MUNDANE',
+    label: 'Mundane',
     icon: '⚙️',
-    badgeClass: 'bg-slate-600 text-white',
-    bgClass: 'bg-slate-100 text-slate-700 border-slate-300',
+    badgeClass: 'bg-slate-500 text-white',
+    bgClass: 'bg-slate-100 text-slate-700 border-slate-200',
     colorHex: '#64748B'
   }
 };
@@ -155,6 +157,71 @@ export const INITIAL_SECTION_TASKS: SectionTask[] = [
   { id: 'sec-sun-3', dayOfWeek: 'Sunday', section: 'intelligent', title: 'Weekly retrospective & quiet meditation', isCompleted: false, allocationMinutes: 30, deadlineTime: '20:00' }
 ];
 
+export const INITIAL_DATA_DROPS: DataDropEntry[] = [
+  {
+    id: 'drop-1',
+    content: 'Whenever I try to do creative writing after a heavy carb lunch, brain fog takes over. Moving writing strictly to 7:00 AM before any food or messages completely resolves this.',
+    type: 'insight',
+    createdAt: 'Nov 14, 2026 • 11:20 AM'
+  },
+  {
+    id: 'drop-2',
+    content: 'Reaching for phone between study sets to check notifications breaks immersion and turns a 5-minute break into 30 minutes of unconscious scrolling.',
+    type: 'bad_habit',
+    createdAt: 'Nov 13, 2026 • 04:15 PM'
+  },
+  {
+    id: 'drop-3',
+    content: 'Pattern: After 6 days of intense discipline, on day 7 my mind seeks an escapist indulgence unless I schedule intentional unstructured outdoor recovery.',
+    type: 'behavior',
+    createdAt: 'Nov 12, 2026 • 08:30 PM'
+  },
+  {
+    id: 'drop-4',
+    content: 'Over-optimizing the planning tool instead of actually doing the uncomfortable work is a sneaky form of procrastination.',
+    type: 'thought_process',
+    createdAt: 'Nov 10, 2026 • 02:40 PM'
+  }
+];
+
+export const INITIAL_SHERLOCK_LOGS: SherlockCaseLog[] = [
+  {
+    id: 'case-01',
+    createdAt: 'Nov 14, 2026',
+    whatHappened: 'I got distracted from the things I had set for myself. I got tired and then didn\'t follow one day, then the next day.',
+    whyHappened: 'I just can\'t focus and do all the things I have set for myself everyday. I don\'t know why, but this time I have a reason not to fail — to be and to give something for the world for better. There are so many things that are important to me. But these recent things made me realize that I can\'t change everything all at once, but gradually I can. For now I just need a focused distraction-free environment. Maybe I would quit everything from music to games to any entertainment thing just to achieve what my soul really wants. And one more thing: I am going to continue karate again.',
+    howToSolve: 'Eliminate entertainment friction during working blocks. Re-engage karate for disciplined physical discharge. Focus on 1 primary habit per pillar instead of overwhelming with 10 things at once.',
+    contingencyPlan: 'Trigger contingency mode when fatigue hits. Do 15m light yoga instead of dropping the habit entirely. Maintain the chain.'
+  }
+];
+
+export const INITIAL_MONTHLY_HISTORY: MonthlyHistoryRecord[] = [
+  {
+    monthKey: '2026-11',
+    monthName: 'November 2026',
+    completedTasks: 118,
+    targetTasks: 140,
+    performancePct: 84,
+    grade: 'A'
+  },
+  {
+    monthKey: '2026-12',
+    monthName: 'December 2026',
+    completedTasks: 132,
+    targetTasks: 140,
+    performancePct: 94,
+    grade: 'S'
+  },
+  {
+    monthKey: '2027-01',
+    monthName: 'January 2027',
+    completedTasks: 124,
+    targetTasks: 140,
+    performancePct: 89,
+    grade: 'A'
+  }
+];
+
 export const getInitialAttackModeState = (): AttackModeState => {
   const today = getTodayDateString();
   const currentDayOfWeek = getTodayDayOfWeek();
@@ -167,10 +234,10 @@ export const getInitialAttackModeState = (): AttackModeState => {
       sdtType: 'extrinsic',
       priority: 'P1',
       allocationHours: 3.5,
-      deadlineDateTime: getRelativeISO(8), // 8h remaining (< 24h P1 Red)
+      deadlineDateTime: getRelativeISO(8),
       status: 'active',
       createdAt: getRelativeISO(-16),
-      notes: 'Finalize vulnerability matrix and patch guidelines.'
+      notes: 'Finalize vulnerability matrix and remediation guidelines.'
     },
     {
       id: 'ATK-102',
@@ -179,7 +246,7 @@ export const getInitialAttackModeState = (): AttackModeState => {
       sdtType: 'intrinsic',
       priority: 'P1',
       allocationHours: 1.5,
-      deadlineDateTime: getRelativeISO(18), // 18h (< 24h P1 Red)
+      deadlineDateTime: getRelativeISO(18),
       status: 'active',
       createdAt: getRelativeISO(-24),
       notes: 'Video record technique and analyze bar path.'
@@ -191,7 +258,7 @@ export const getInitialAttackModeState = (): AttackModeState => {
       sdtType: 'intrinsic',
       priority: 'P2',
       allocationHours: 2.0,
-      deadlineDateTime: getRelativeISO(42), // 42h (< 72h P2 Amber)
+      deadlineDateTime: getRelativeISO(42),
       status: 'active',
       createdAt: getRelativeISO(-30),
       notes: '4K render with chapter markers.'
@@ -203,7 +270,7 @@ export const getInitialAttackModeState = (): AttackModeState => {
       sdtType: 'intrinsic',
       priority: 'P2',
       allocationHours: 4.0,
-      deadlineDateTime: getRelativeISO(65), // 65h (< 72h P2 Amber)
+      deadlineDateTime: getRelativeISO(65),
       status: 'active',
       createdAt: getRelativeISO(-12),
       notes: 'Chaos network partition test.'
@@ -215,7 +282,7 @@ export const getInitialAttackModeState = (): AttackModeState => {
       sdtType: 'intrinsic',
       priority: 'P3',
       allocationHours: 2.5,
-      deadlineDateTime: getRelativeISO(120), // 5 days (P3 Yellow)
+      deadlineDateTime: getRelativeISO(120),
       status: 'active',
       createdAt: getRelativeISO(-48),
       notes: 'Translate into practical decision heuristics.'
@@ -227,7 +294,7 @@ export const getInitialAttackModeState = (): AttackModeState => {
       sdtType: 'extrinsic',
       priority: 'P4',
       allocationHours: 2.0,
-      deadlineDateTime: getRelativeISO(240), // 10 days (> 7d P4 Green)
+      deadlineDateTime: getRelativeISO(240),
       status: 'active',
       createdAt: getRelativeISO(-20),
       notes: 'Collect invoices and cloud server records.'
@@ -264,11 +331,10 @@ export const getInitialAttackModeState = (): AttackModeState => {
     }
   ];
 
-  // 4-Week Month Scorecard System
   const weeklyScorecards: WeekScorecard[] = [
     {
       weekNumber: 1,
-      label: 'Week 1 (Days 1 - 7)',
+      label: 'Week 1',
       completedTasks: 31,
       targetTasks: 35,
       grade: 'A',
@@ -276,7 +342,7 @@ export const getInitialAttackModeState = (): AttackModeState => {
     },
     {
       weekNumber: 2,
-      label: 'Week 2 (Days 8 - 14)',
+      label: 'Week 2',
       completedTasks: 33,
       targetTasks: 35,
       grade: 'S',
@@ -284,7 +350,7 @@ export const getInitialAttackModeState = (): AttackModeState => {
     },
     {
       weekNumber: 3,
-      label: 'Week 3 (Current Sprint)',
+      label: 'Week 3',
       completedTasks: 22,
       targetTasks: 35,
       grade: 'A',
@@ -292,7 +358,7 @@ export const getInitialAttackModeState = (): AttackModeState => {
     },
     {
       weekNumber: 4,
-      label: 'Week 4 (Upcoming)',
+      label: 'Week 4',
       completedTasks: 0,
       targetTasks: 35,
       grade: 'B',
@@ -305,7 +371,7 @@ export const getInitialAttackModeState = (): AttackModeState => {
       userId: 'usr_guest_demo',
       email: 'adventurer@attackmode.dev',
       name: 'Aryan',
-      isLoggedIn: false, // Default unauthenticated to show the welcoming login screen!
+      isLoggedIn: false,
       syncStatus: 'synced',
       lastSyncedAt: new Date().toISOString()
     },
@@ -319,10 +385,16 @@ export const getInitialAttackModeState = (): AttackModeState => {
     slaTickets,
     monthlyTargets,
     weeklyScorecards,
+    monthlyHistory: INITIAL_MONTHLY_HISTORY,
+    dataDrops: INITIAL_DATA_DROPS,
+    sherlockLogs: INITIAL_SHERLOCK_LOGS,
     mutationLog: 'Week 2 Insight: Shifting deep cognitive work to morning before client pings increased completion from 88% to 94%.',
     activeCreedIndex: 0,
     isGuideDismissed: false,
     isOnboardingOpen: false,
+    isDataDropModalOpen: false,
+    isSherlockModalOpen: false,
+    isSundayResetModalOpen: false,
     soundEnabled: true
   };
 };

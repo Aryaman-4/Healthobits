@@ -13,15 +13,15 @@ export interface SectionTask {
   title: string;
   isCompleted: boolean;
   completedAt?: string;
-  allocationMinutes: number; // e.g. 30m
-  deadlineTime?: string; // e.g. "18:00"
+  allocationMinutes: number;
+  deadlineTime?: string;
 }
 
 export interface AttackTask {
   id: string;
   title: string;
   category: TriadCategory;
-  sdtType: SDTType; // Intrinsic (70%) or Extrinsic (30%)
+  sdtType: SDTType;
   allocationMinutes: number;
   timeSpentMinutes: number;
   allocationReached: boolean;
@@ -30,15 +30,15 @@ export interface AttackTask {
   completedAt?: string;
   slaTicketId?: string;
   isAnchor?: boolean;
-  date: string; // YYYY-MM-DD
+  date: string;
 }
 
 export interface SLATicket {
-  id: string; // e.g. "ATK-101"
+  id: string;
   title: string;
   category: TriadCategory;
   sdtType: SDTType;
-  priority: SLAPriority; // P1 (Red), P2 (Amber), P3 (Yellow), P4 (Green)
+  priority: SLAPriority;
   allocationHours: number;
   deadlineDateTime: string;
   status: 'active' | 'resolved' | 'breached';
@@ -59,11 +59,38 @@ export interface MonthlyTarget {
 
 export interface WeekScorecard {
   weekNumber: 1 | 2 | 3 | 4;
-  label: string; // e.g. "Week 1 (Days 1 - 7)"
+  label: string;
   completedTasks: number;
   targetTasks: number;
   grade: 'S' | 'A' | 'B' | 'C';
-  slaOnTimeRate: number; // %
+  slaOnTimeRate: number;
+}
+
+export interface MonthlyHistoryRecord {
+  monthKey: string; // e.g. "2026-11"
+  monthName: string; // e.g. "November"
+  completedTasks: number;
+  targetTasks: number;
+  performancePct: number;
+  grade: 'S' | 'A' | 'B' | 'C';
+}
+
+export type DataDropType = 'insight' | 'bad_habit' | 'behavior' | 'thought_process' | 'problem';
+
+export interface DataDropEntry {
+  id: string;
+  content: string;
+  type: DataDropType;
+  createdAt: string;
+}
+
+export interface SherlockCaseLog {
+  id: string;
+  createdAt: string;
+  whatHappened: string;
+  whyHappened: string;
+  howToSolve: string;
+  contingencyPlan: string;
 }
 
 export interface UserAccount {
@@ -78,7 +105,7 @@ export interface UserAccount {
 
 export interface AttackModeState {
   account: UserAccount;
-  dailyQuotaX: number; // Default 5 (Weekly = 35, Monthly = 140)
+  dailyQuotaX: number;
   anchorModeActive: boolean;
   activeTab: 'sections' | 'stats' | 'sla' | 'account';
   selectedDayOfWeek: DayOfWeek;
@@ -88,9 +115,15 @@ export interface AttackModeState {
   slaTickets: SLATicket[];
   monthlyTargets: MonthlyTarget[];
   weeklyScorecards: WeekScorecard[];
+  monthlyHistory: MonthlyHistoryRecord[];
+  dataDrops: DataDropEntry[];
+  sherlockLogs: SherlockCaseLog[];
   mutationLog: string;
   activeCreedIndex: number;
   isGuideDismissed: boolean;
   isOnboardingOpen: boolean;
+  isDataDropModalOpen: boolean;
+  isSherlockModalOpen: boolean;
+  isSundayResetModalOpen: boolean;
   soundEnabled: boolean;
 }

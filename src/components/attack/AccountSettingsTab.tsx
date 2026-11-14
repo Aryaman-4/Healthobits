@@ -8,9 +8,8 @@ import {
   LogOut,
   RefreshCw,
   CheckCircle2,
-  Shield,
   Sparkles,
-  Smartphone
+  FileText
 } from 'lucide-react';
 import { useAttackMode } from '../../context/AttackModeContext';
 import { sound } from '../../utils/audio';
@@ -21,7 +20,9 @@ export const AccountSettingsTab: React.FC = () => {
     logoutUser,
     toggleSound,
     openOnboarding,
-    reopenGuide
+    openSherlockModal,
+    openDataDropModal,
+    openSundayResetModal
   } = useAttackMode();
 
   const [isSyncing, setIsSyncing] = useState(false);
@@ -32,35 +33,35 @@ export const AccountSettingsTab: React.FC = () => {
     setIsSyncing(true);
     setTimeout(() => {
       setIsSyncing(false);
-      setSyncFeedback('Cloudflare D1 Database Synced Successfully!');
+      setSyncFeedback('Cloudflare D1 edge database synchronized');
       setTimeout(() => setSyncFeedback(null), 3000);
-    }, 800);
+    }, 700);
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-3 sm:px-6 py-6 space-y-6 font-sans">
-      {/* 1. Header */}
-      <div className="bg-white rounded-3xl border-2 border-[#E2E8F0] border-b-6 p-5 shadow-xs">
-        <h2 className="font-black text-xl text-slate-900 uppercase">
-          Account & App Settings
-        </h2>
+    <div className="max-w-md mx-auto sm:max-w-3xl px-4 sm:px-6 py-5 space-y-5 font-sans">
+      {/* 1. Page Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          Account & Settings
+        </h1>
         <p className="text-xs text-slate-500 font-medium mt-0.5">
-          Manage your Cloudflare D1 database persistence, sound preferences, and beginner guides.
+          Manage your cloud database persistence, audio, and personal protocols
         </p>
       </div>
 
       {/* 2. User Profile Card */}
-      <div className="bg-white rounded-3xl border-2 border-[#E2E8F0] border-b-6 p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-100 space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-[#937485] text-white flex items-center justify-center font-bold text-lg shadow-sm">
               {state.account.name.charAt(0)}
             </div>
             <div>
-              <h3 className="font-black text-base text-slate-900">
+              <h2 className="font-bold text-base text-slate-900">
                 {state.account.name}
-              </h3>
-              <p className="text-xs text-slate-500 font-mono">
+              </h2>
+              <p className="text-xs text-slate-400 font-medium">
                 {state.account.email}
               </p>
             </div>
@@ -68,24 +69,24 @@ export const AccountSettingsTab: React.FC = () => {
 
           <button
             onClick={logoutUser}
-            className="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all active:translate-y-0.5"
+            className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-600 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
           >
-            <LogOut size={14} />
-            <span>Log Out</span>
+            <LogOut size={13} />
+            <span>Sign Out</span>
           </button>
         </div>
 
-        {/* Database Status */}
-        <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Cloudflare D1 Persistence Card */}
+        <div className="p-4 rounded-2xl bg-[#7EB982]/10 border border-[#7EB982]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <Database size={18} className="text-emerald-700" />
+            <Database size={18} className="text-[#7EB982]" />
             <div>
-              <div className="font-black text-xs text-emerald-950 flex items-center gap-1.5">
+              <div className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                 <span>Cloudflare D1 Persistence:</span>
-                <span className="text-emerald-700 uppercase">ONLINE & SYNCED ✅</span>
+                <span className="text-[#5A9A5E] font-semibold">Active & Synced</span>
               </div>
-              <p className="text-[11px] text-emerald-800 font-medium">
-                Your 7-day Section System and 4-week scores are safely persisted in the edge database.
+              <p className="text-[11px] text-slate-500 font-medium">
+                Your 7-day checklists and monthly reports persist automatically to the edge database.
               </p>
             </div>
           </div>
@@ -93,7 +94,7 @@ export const AccountSettingsTab: React.FC = () => {
           <button
             onClick={handleManualSync}
             disabled={isSyncing}
-            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-1.5 self-start sm:self-auto shrink-0"
+            className="px-3 py-1.5 rounded-xl bg-[#7EB982] hover:bg-[#6FA873] text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 self-start sm:self-auto shrink-0 shadow-2xs cursor-pointer"
           >
             <RefreshCw size={13} className={isSyncing ? 'animate-spin' : ''} />
             <span>{isSyncing ? 'Syncing...' : 'Sync Now'}</span>
@@ -101,71 +102,95 @@ export const AccountSettingsTab: React.FC = () => {
         </div>
 
         {syncFeedback && (
-          <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-900 text-xs font-bold flex items-center gap-2">
-            <CheckCircle2 size={15} />
+          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-medium flex items-center gap-2 border border-emerald-100">
+            <CheckCircle2 size={14} className="text-[#7EB982]" />
             <span>{syncFeedback}</span>
           </div>
         )}
       </div>
 
-      {/* 3. Audio & SFX Controls (Moved here from the top header!) */}
-      <div className="bg-white rounded-3xl border-2 border-[#E2E8F0] border-b-6 p-5 sm:p-6 shadow-xs space-y-4">
+      {/* 3. Audio & Haptics Setting */}
+      <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-100 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
-              {state.soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-600">
+              {state.soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
             </div>
             <div>
-              <h4 className="font-black text-sm text-slate-900">
-                Tactile Audio & Sound Effects (SFX)
-              </h4>
-              <p className="text-xs text-slate-500 font-medium">
-                Plays satisfying pops and chords when checking off tasks and hitting quotas.
+              <h3 className="font-bold text-xs sm:text-sm text-slate-900">
+                Tactile Audio & Sound Effects
+              </h3>
+              <p className="text-[11px] text-slate-400 font-medium">
+                Pops and soft chimes when completing habits and hitting targets
               </p>
             </div>
           </div>
 
           <button
             onClick={toggleSound}
-            className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider border-2 border-b-4 transition-all cursor-pointer active:translate-y-0.5 ${
+            className={`px-3.5 py-1.5 rounded-xl font-semibold text-xs transition-all cursor-pointer ${
               state.soundEnabled
-                ? 'bg-blue-600 border-blue-800 text-white shadow-xs'
-                : 'bg-slate-100 border-slate-300 text-slate-600'
+                ? 'bg-[#937485] text-white shadow-xs'
+                : 'bg-slate-100 text-slate-500'
             }`}
           >
-            {state.soundEnabled ? 'SOUND: ON' : 'SOUND: OFF'}
+            {state.soundEnabled ? 'Enabled' : 'Disabled'}
           </button>
         </div>
       </div>
 
-      {/* 4. Beginner Tutorials & Guidance */}
-      <div className="bg-white rounded-3xl border-2 border-[#E2E8F0] border-b-6 p-5 sm:p-6 shadow-xs space-y-3">
-        <h4 className="font-black text-sm text-slate-900 uppercase">
-          Beginner Guides & Game Help
-        </h4>
-        <p className="text-xs text-slate-500 font-medium">
-          New to Attack Mode? Review the 4-step onboarding wizard or restore the top explanation banner.
-        </p>
+      {/* 4. Protocols & Tools Navigation */}
+      <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-100 space-y-3">
+        <h3 className="font-bold text-xs sm:text-sm text-slate-900">
+          Protocols & Support Tools
+        </h3>
 
-        <div className="flex flex-wrap items-center gap-2.5 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs font-semibold">
           <button
-            onClick={openOnboarding}
-            className="px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all active:translate-y-0.5"
+            onClick={openSherlockModal}
+            className="p-3.5 rounded-2xl bg-[#EEF0F6]/80 hover:bg-[#EEF0F6] text-slate-800 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
           >
-            <HelpCircle size={15} />
-            <span>Replay 4-Step Onboarding Tutorial</span>
+            <span className="text-base">🔍</span>
+            <div>
+              <div className="font-bold">Come Here: Sherlock Protocol</div>
+              <div className="text-[11px] text-slate-500 font-normal">Contingency plan when you mess up</div>
+            </div>
           </button>
 
           <button
-            onClick={reopenGuide}
-            className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all active:translate-y-0.5"
+            onClick={openDataDropModal}
+            className="p-3.5 rounded-2xl bg-[#EEF0F6]/80 hover:bg-[#EEF0F6] text-slate-800 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
           >
-            <Sparkles size={15} />
-            <span>Restore Top Guide Card</span>
+            <span className="text-base">💡</span>
+            <div>
+              <div className="font-bold">Data Drop Notes</div>
+              <div className="text-[11px] text-slate-500 font-normal">Filterable habit & insight logs ({state.dataDrops.length})</div>
+            </div>
+          </button>
+
+          <button
+            onClick={openSundayResetModal}
+            className="p-3.5 rounded-2xl bg-[#EEF0F6]/80 hover:bg-[#EEF0F6] text-slate-800 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
+          >
+            <span className="text-base">🌅</span>
+            <div>
+              <div className="font-bold">Sunday Weekly Reset</div>
+              <div className="text-[11px] text-slate-500 font-normal">Archive week & prepare next sprint</div>
+            </div>
+          </button>
+
+          <button
+            onClick={openOnboarding}
+            className="p-3.5 rounded-2xl bg-[#EEF0F6]/80 hover:bg-[#EEF0F6] text-slate-800 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
+          >
+            <span className="text-base">📘</span>
+            <div>
+              <div className="font-bold">System Walkthrough</div>
+              <div className="text-[11px] text-slate-500 font-normal">Replay the 4-step onboarding guide</div>
+            </div>
           </button>
         </div>
       </div>
     </div>
   );
 };
-

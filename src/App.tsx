@@ -7,6 +7,9 @@ import { SystemStatsTab } from './components/attack/SystemStatsTab';
 import { DeadlineSLATab } from './components/attack/DeadlineSLATab';
 import { AccountSettingsTab } from './components/attack/AccountSettingsTab';
 import { OnboardingWizardModal } from './components/attack/OnboardingAndGuide';
+import { DataDropModal } from './components/attack/DataDropModal';
+import { SherlockProtocolModal } from './components/attack/SherlockProtocolModal';
+import { SundayResetModal } from './components/attack/SundayResetModal';
 import { BottomNav } from './components/attack/BottomNav';
 
 const AppContent: React.FC = () => {
@@ -18,12 +21,15 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#EEF0F6] text-slate-900 flex flex-col font-sans relative pb-24">
+    <div className="min-h-screen bg-[#EEF0F6] text-slate-900 flex flex-col font-sans relative pb-28">
       {/* 1. Subtle Creed Header */}
       <HeaderCreedBanner />
 
-      {/* 2. Onboarding Wizard Modal */}
+      {/* 2. Modals & Protocols */}
       <OnboardingWizardModal />
+      <DataDropModal />
+      <SherlockProtocolModal />
+      <SundayResetModal />
 
       {/* 3. Main Views */}
       <main className="flex-1">

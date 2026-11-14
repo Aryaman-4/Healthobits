@@ -4,7 +4,6 @@ import {
   Sparkles,
   ChevronRight,
   ChevronLeft,
-  CheckCircle2,
   Calendar,
   Award,
   Clock,
@@ -23,16 +22,18 @@ export const BeginnerGuideCard: React.FC = () => {
   if (state.isGuideDismissed) return null;
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-[#E2E8F0] border-b-5 p-4 sm:p-5 shadow-xs transition-all space-y-3">
+    <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 transition-all space-y-3 font-sans">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">📘</span>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[#937485]/15 text-[#937485] flex items-center justify-center font-bold text-sm">
+            i
+          </div>
           <div>
-            <h3 className="font-black text-sm text-slate-900 uppercase tracking-wide">
-              How This System Works (Beginner Guide)
+            <h3 className="font-bold text-sm text-slate-900 tracking-tight">
+              Quick Guide: The 7-Day Section System
             </h3>
             <p className="text-xs text-slate-500 font-medium">
-              A 3-second overview of the 7-Day Section System and 4-Week Monthly Accumulator.
+              Understand the 3 pillars and weekly accumulation in seconds.
             </p>
           </div>
         </div>
@@ -40,13 +41,13 @@ export const BeginnerGuideCard: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs uppercase cursor-pointer transition-all"
+            className="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900 font-semibold text-xs cursor-pointer transition-colors"
           >
-            {isExpanded ? 'Collapse' : 'Learn Features ▾'}
+            {isExpanded ? 'Hide' : 'Show Details'}
           </button>
           <button
             onClick={dismissGuide}
-            className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center text-xs font-bold cursor-pointer"
+            className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center text-xs font-semibold cursor-pointer transition-colors"
             title="Dismiss guide card"
           >
             ✕
@@ -55,34 +56,34 @@ export const BeginnerGuideCard: React.FC = () => {
       </div>
 
       {isExpanded && (
-        <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fade-in">
-          <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-1">
-            <div className="font-black text-xs text-emerald-900 flex items-center gap-1.5">
+        <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fade-in text-xs">
+          <div className="p-3.5 rounded-2xl bg-[#937485]/10 border border-[#937485]/20 space-y-1">
+            <div className="font-bold text-slate-900 flex items-center gap-1.5">
               <span>💰</span>
               <span>1. The 3 Core Pillars</span>
             </div>
-            <p className="text-[11px] text-emerald-800 font-medium leading-relaxed">
-              Every day holds tasks under <strong>Rich</strong> (earning), <strong>Muscular</strong> (body/karate/yoga), and <strong>Intelligent</strong> (reading/coding/meditation).
+            <p className="text-slate-600 font-medium leading-relaxed">
+              Every day organizes habits under <strong>Rich</strong> (earning/freelance), <strong>Muscular</strong> (karate/yoga/calisthenics), and <strong>Intelligent</strong> (reading/coding/meditation).
             </p>
           </div>
 
-          <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-200 space-y-1">
-            <div className="font-black text-xs text-blue-900 flex items-center gap-1.5">
+          <div className="p-3.5 rounded-2xl bg-[#ECA172]/10 border border-[#ECA172]/20 space-y-1">
+            <div className="font-bold text-slate-900 flex items-center gap-1.5">
               <span>📅</span>
-              <span>2. 7-Day Section Grid</span>
+              <span>2. 7-Day Week Flow</span>
             </div>
-            <p className="text-[11px] text-blue-800 font-medium leading-relaxed">
-              Plan Monday through Sunday. Check items off as you finish them, or add custom tasks directly inside any section.
+            <p className="text-slate-600 font-medium leading-relaxed">
+              Navigate Monday through Sunday with one tap. Check items off or add new tasks directly under each section.
             </p>
           </div>
 
-          <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-200 space-y-1">
-            <div className="font-black text-xs text-purple-900 flex items-center gap-1.5">
+          <div className="p-3.5 rounded-2xl bg-[#7EB982]/10 border border-[#7EB982]/20 space-y-1">
+            <div className="font-bold text-slate-900 flex items-center gap-1.5">
               <span>🏆</span>
               <span>3. 4-Week Month Rollup</span>
             </div>
-            <p className="text-[11px] text-purple-800 font-medium leading-relaxed">
-              At each week's end, completed tasks are calculated into a Weekly Scorecard. 4 weeks compound into your Monthly Grade (S/A/B/C).
+            <p className="text-slate-600 font-medium leading-relaxed">
+              Each Sunday, archive your week. 4 weeks compound into your monthly report card with performance grades (S, A, B, C).
             </p>
           </div>
         </div>
@@ -91,7 +92,7 @@ export const BeginnerGuideCard: React.FC = () => {
   );
 };
 
-// 2. 4-STEP ONBOARDING WIZARD MODAL
+// 2. ONBOARDING WIZARD MODAL (100% RE-STYLED TO SOFT DRIBBLE PALETTE)
 export const OnboardingWizardModal: React.FC = () => {
   const { state, closeOnboarding } = useAttackMode();
   const [step, setStep] = useState(1);
@@ -117,20 +118,20 @@ export const OnboardingWizardModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 font-sans">
-      <div className="bg-white rounded-3xl border-2 border-slate-300 border-b-6 max-w-lg w-full p-6 sm:p-7 space-y-5 shadow-2xl animate-scale-up">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 font-sans">
+      <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-100 animate-scale-up">
         {/* Step Progress Bar */}
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <span className="text-xl">⚡</span>
-            <span className="font-black text-xs uppercase tracking-wider text-slate-800">
-              Welcome to Attack Mode • Step {step} of {totalSteps}
+            <span className="w-2 h-2 rounded-full bg-[#937485]" />
+            <span className="font-bold text-xs text-slate-500 uppercase tracking-wider">
+              System Walkthrough • Step {step} of {totalSteps}
             </span>
           </div>
 
           <button
             onClick={closeOnboarding}
-            className="w-7 h-7 rounded-lg bg-slate-100 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+            className="w-7 h-7 rounded-full bg-slate-100 text-xs font-semibold text-slate-400 hover:text-slate-700 cursor-pointer transition-colors"
           >
             ✕
           </button>
@@ -139,36 +140,45 @@ export const OnboardingWizardModal: React.FC = () => {
         {/* STEP 1: THE 3 CORE PILLARS */}
         {step === 1 && (
           <div className="space-y-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-3xl mx-auto shadow-xs">
+            <div className="w-14 h-14 rounded-2xl bg-[#937485]/15 text-[#937485] flex items-center justify-center text-2xl mx-auto shadow-2xs">
               💰
             </div>
             <div>
-              <h3 className="font-black text-lg text-slate-900">
-                Rule 1: The 3 Core Pillars of Mastery
+              <h3 className="font-bold text-lg text-slate-900 tracking-tight">
+                The 3 Core Pillars of Mastery
               </h3>
               <p className="text-xs text-slate-500 font-medium mt-1">
-                Zero clutter. Every high-leverage task in your life belongs to one of three categories:
+                Zero clutter. Every high-leverage habit and task in your life belongs to one of three sections:
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-left pt-1">
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
-                <div className="font-black text-xs text-emerald-900">💰 RICH</div>
-                <p className="text-[11px] text-emerald-800 mt-0.5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-left pt-1 text-xs">
+              <div className="p-3.5 rounded-2xl bg-[#937485]/10 border border-[#937485]/20">
+                <div className="font-bold text-slate-900 flex items-center gap-1">
+                  <span>💰</span>
+                  <span>Rich</span>
+                </div>
+                <p className="text-slate-600 text-[11px] mt-0.5">
                   Freelance, business, money systems, revenue leverage.
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200">
-                <div className="font-black text-xs text-red-900">💪 MUSCULAR</div>
-                <p className="text-[11px] text-red-800 mt-0.5">
+              <div className="p-3.5 rounded-2xl bg-[#ECA172]/10 border border-[#ECA172]/20">
+                <div className="font-bold text-slate-900 flex items-center gap-1">
+                  <span>💪</span>
+                  <span>Muscular</span>
+                </div>
+                <p className="text-slate-600 text-[11px] mt-0.5">
                   Calisthenics, karate, yoga, flexibility, aesthetics.
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
-                <div className="font-black text-xs text-blue-900">🧠 INTELLIGENT</div>
-                <p className="text-[11px] text-blue-800 mt-0.5">
+              <div className="p-3.5 rounded-2xl bg-[#7EB982]/10 border border-[#7EB982]/20">
+                <div className="font-bold text-slate-900 flex items-center gap-1">
+                  <span>🧠</span>
+                  <span>Intelligent</span>
+                </div>
+                <p className="text-slate-600 text-[11px] mt-0.5">
                   Algo practice, problem solving, deep reading, meditation.
                 </p>
               </div>
@@ -179,59 +189,58 @@ export const OnboardingWizardModal: React.FC = () => {
         {/* STEP 2: THE 7-DAY SECTION SYSTEM */}
         {step === 2 && (
           <div className="space-y-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-3xl mx-auto shadow-xs">
+            <div className="w-14 h-14 rounded-2xl bg-[#ECA172]/15 text-[#ECA172] flex items-center justify-center text-2xl mx-auto shadow-2xs">
               📅
             </div>
             <div>
-              <h3 className="font-black text-lg text-slate-900">
-                Rule 2: The 7-Day Section System
+              <h3 className="font-bold text-lg text-slate-900 tracking-tight">
+                The 7-Day Section System
               </h3>
               <p className="text-xs text-slate-500 font-medium mt-1">
                 Your week is organized cleanly by days (Monday through Sunday):
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-2 text-xs">
-              <div className="font-bold text-slate-800 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-600" />
-                <span>Under every single day, you have the 3 collapsible sections.</span>
+            <div className="p-4 rounded-2xl bg-[#EEF0F6]/70 border border-slate-200/60 text-left space-y-2 text-xs">
+              <div className="font-bold text-slate-800">
+                Under every single day, you have the 3 collapsible sections.
               </div>
               <p className="text-slate-600 text-[11px] leading-relaxed">
                 Add your tasks directly into each section (e.g., <em>learn about money</em>, <em>Yoga</em>, <em>Reading</em>). Check them off on mobile with one tap.
               </p>
-              <div className="flex items-center gap-1.5 pt-1 text-[11px] font-bold text-blue-600">
-                <span>⚡ Tip: Toggle between Day View and Full Week Grid anytime!</span>
+              <div className="text-[11px] font-semibold text-[#937485] pt-1">
+                Toggle between Today focus and Full Week overview anytime.
               </div>
             </div>
           </div>
         )}
 
-        {/* STEP 3: 4-WEEK MONTHLY PERFORMANCE SCORECARD */}
+        {/* STEP 3: SUNDAY RESET & 4-WEEK ACCUMULATOR */}
         {step === 3 && (
           <div className="space-y-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center text-3xl mx-auto shadow-xs">
+            <div className="w-14 h-14 rounded-2xl bg-[#7EB982]/15 text-[#7EB982] flex items-center justify-center text-2xl mx-auto shadow-2xs">
               🏆
             </div>
             <div>
-              <h3 className="font-black text-lg text-slate-900">
-                Rule 3: 4-Week Month Performance Rollup
+              <h3 className="font-bold text-lg text-slate-900 tracking-tight">
+                Sunday Archive & 4-Week Month System
               </h3>
               <p className="text-xs text-slate-500 font-medium mt-1">
                 At each week's end, the completed tasks across all 7 days are totaled:
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-left pt-1">
-              <div className="p-3 rounded-xl bg-purple-50 border border-purple-200">
-                <div className="font-black text-xs text-purple-900">Weekly Grades</div>
-                <p className="text-[11px] text-purple-800 mt-0.5">
+            <div className="grid grid-cols-2 gap-2 text-left pt-1 text-xs">
+              <div className="p-3.5 rounded-2xl bg-[#EEF0F6]/80 border border-slate-200/60">
+                <div className="font-bold text-slate-900">Weekly Grades</div>
+                <p className="text-slate-600 text-[11px] mt-0.5">
                   Week 1, 2, 3, 4 each receive a Grade (S, A, B, C) based on your consistency.
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
-                <div className="font-black text-xs text-emerald-900">Monthly Average %</div>
-                <p className="text-[11px] text-emerald-800 mt-0.5">
+              <div className="p-3.5 rounded-2xl bg-[#EEF0F6]/80 border border-slate-200/60">
+                <div className="font-bold text-slate-900">Monthly History</div>
+                <p className="text-slate-600 text-[11px] mt-0.5">
                   Rolls up 4 weeks into your monthly report card with 1-click Markdown & Excel export.
                 </p>
               </div>
@@ -239,32 +248,28 @@ export const OnboardingWizardModal: React.FC = () => {
           </div>
         )}
 
-        {/* STEP 4: DEADLINE SLA GOD TABLE */}
+        {/* STEP 4: DATA DROP & SHERLOCK PROTOCOL */}
         {step === 4 && (
           <div className="space-y-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center text-3xl mx-auto shadow-xs">
-              ⏰
+            <div className="w-14 h-14 rounded-2xl bg-[#937485]/15 text-[#937485] flex items-center justify-center text-2xl mx-auto shadow-2xs">
+              ⚡
             </div>
             <div>
-              <h3 className="font-black text-lg text-slate-900">
-                Rule 4: Deadline SLA Incident Engine
+              <h3 className="font-bold text-lg text-slate-900 tracking-tight">
+                Data Drop & Sherlock Protocol
               </h3>
               <p className="text-xs text-slate-500 font-medium mt-1">
-                For deliverables that cannot afford to slip:
+                Tools built specifically for your self-awareness and contingency recovery:
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-left space-y-2 text-xs text-red-950">
-              <div className="font-bold flex items-center gap-2">
-                <span>🔴 P1 &lt; 24h</span>
-                <span>•</span>
-                <span>🟠 P2 &lt; 72h</span>
-                <span>•</span>
-                <span>🟡 P3 &lt; 7d</span>
+            <div className="p-4 rounded-2xl bg-[#EEF0F6]/70 border border-slate-200/60 text-left space-y-2 text-xs">
+              <div>
+                <strong className="text-slate-900">Center (+) Button:</strong> Tap to open <em>Data Drop</em> — instantly record an insight, bad habit, or thought process.
               </div>
-              <p className="text-[11px] text-red-800 leading-relaxed">
-                Live ticking countdown timers make invisible time physically urgent. Push deliverables to Today in 1 click!
-              </p>
+              <div className="pt-1">
+                <strong className="text-slate-900">Come Here (Sherlock):</strong> When you mess up or lose focus, tap the Sherlock button to run a compassionate post-mortem and set a contingency plan.
+              </div>
             </div>
           </div>
         )}
@@ -274,9 +279,9 @@ export const OnboardingWizardModal: React.FC = () => {
           {step > 1 ? (
             <button
               onClick={handlePrev}
-              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase cursor-pointer transition-all"
+              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
             >
-              ← Back
+              Back
             </button>
           ) : (
             <div />
@@ -284,13 +289,12 @@ export const OnboardingWizardModal: React.FC = () => {
 
           <button
             onClick={handleNext}
-            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider border-2 border-b-4 border-blue-800 active:border-b-2 active:translate-y-0.5 cursor-pointer transition-all shadow-sm flex items-center gap-1.5"
+            className="px-5 py-2.5 rounded-xl bg-[#937485] hover:bg-[#836475] text-white font-semibold text-xs tracking-wide transition-colors cursor-pointer shadow-xs"
           >
-            <span>{step === totalSteps ? 'Got it — Enter System' : 'Next Step →'}</span>
+            {step === totalSteps ? 'Get Started' : 'Next Step'}
           </button>
         </div>
       </div>
     </div>
   );
 };
-
