@@ -66,6 +66,8 @@ export interface WeekScorecard {
   targetTasks: number;
   grade: 'S' | 'A' | 'B' | 'C';
   slaOnTimeRate: number;
+  isSaved?: boolean;
+  savedAt?: string;
 }
 
 export interface MonthlyHistoryRecord {
@@ -124,6 +126,8 @@ export interface AttackModeState {
   activeTab: AttackModeTab;
   selectedDayOfWeek: DayOfWeek;
   viewMode: 'day' | 'weekGrid';
+  currentWeekNumber: 1 | 2 | 3 | 4;
+  currentMonthName: string;
   sectionTasks: SectionTask[];
   archivedTasks: SectionTask[];
   tasks: AttackTask[];

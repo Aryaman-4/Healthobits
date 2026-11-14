@@ -135,14 +135,14 @@ export const SectionSystemTab: React.FC = () => {
             <span>Come Here</span>
           </button>
 
-          {/* Sunday Reset Trigger Button */}
+          {/* Save Week Performance Trigger Button */}
           <button
             onClick={openSundayResetModal}
             className="px-2.5 py-1.5 rounded-xl bg-[#937485]/15 hover:bg-[#937485]/25 text-[#937485] text-[11px] font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
-            title="Sunday Weekly Review & New Week Setup"
+            title="Save this week's completed tasks into report & advance cycle"
           >
-            <span>🌅</span>
-            <span>Sunday Reset</span>
+            <span>💾</span>
+            <span>Save Week {state.currentWeekNumber || 1}</span>
           </button>
         </div>
       </div>

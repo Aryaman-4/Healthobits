@@ -28,20 +28,40 @@ export const SystemStatsTab: React.FC = () => {
   // View toggle for Line Chart: Weekly Sprint vs Multi-Month Progression
   const [chartMode, setChartMode] = useState<'weekly' | 'monthly'>('weekly');
 
-  // Weekly data points for line chart
-  const weeklyPoints = [
-    { label: 'W1', value: 31, target: 35 },
-    { label: 'W2', value: 33, target: 35 },
-    { label: 'W3', value: 22, target: 35 },
-    { label: 'W4', value: 0, target: 35 }
-  ];
+  // Real Weekly points from state.weeklyScorecards
+  const currentWeekNum = state.currentWeekNumber || 1;
+  const weeklyPoints = state.weeklyScorecards.map(sc => {
+    const isCurrent = sc.weekNumber === currentWeekNum;
+    const count = isCurrent ? allWeekStats.completedTasks : sc.completedTasks;
+    return {
+      label: `W${sc.weekNumber}`,
+      value: count,
+      target: sc.targetTasks || state.dailyQuotaX * 7
+    };
+  });
 
-  // Monthly data points for line chart
-  const monthlyPoints = [
-    { label: 'Nov', value: 118, target: 140 },
-    { label: 'Dec', value: 132, target: 140 },
-    { label: 'Jan', value: 124, target: 140 }
-  ];
+  // Real Monthly points: Only actual archived months from real usage + current in-progress month
+  const currentMonthShort = (state.currentMonthName || new Date().toLocaleDateString('en-US', { month: 'short' })).slice(0, 3);
+  const monthlyPoints = state.monthlyHistory.length > 0
+    ? [
+        ...state.monthlyHistory.map(m => ({
+          label: m.monthName.slice(0, 3),
+          value: m.completedTasks,
+          target: m.targetTasks
+        })),
+        {
+          label: currentMonthShort,
+          value: monthStats.fourWeekTotalCompleted,
+          target: monthStats.fourWeekTarget
+        }
+      ]
+    : [
+        {
+          label: currentMonthShort,
+          value: monthStats.fourWeekTotalCompleted,
+          target: monthStats.fourWeekTarget
+        }
+      ];
 
   const activePoints = chartMode === 'weekly' ? weeklyPoints : monthlyPoints;
 
@@ -50,19 +70,23 @@ export const SystemStatsTab: React.FC = () => {
   const height = 130;
   const paddingX = 35;
   const paddingY = 22;
-  const maxVal = Math.max(...activePoints.map(p => p.target), 1);
+  const maxVal = Math.max(...activePoints.map(p => Math.max(p.target, p.value)), 1);
 
   const coords = activePoints.map((p, idx) => {
-    const x = paddingX + (idx / (activePoints.length - 1)) * (width - 2 * paddingX);
+    const x = activePoints.length === 1
+      ? width / 2
+      : paddingX + (idx / (activePoints.length - 1)) * (width - 2 * paddingX);
     const y = height - paddingY - (p.value / maxVal) * (height - 2 * paddingY);
     return { x, y, ...p };
   });
 
-  const pathD = coords.reduce((acc, curr, idx) => {
-    return idx === 0 ? `M ${curr.x} ${curr.y}` : `${acc} L ${curr.x} ${curr.y}`;
-  }, '');
+  const pathD = coords.length > 1
+    ? coords.reduce((acc, curr, idx) => {
+        return idx === 0 ? `M ${curr.x} ${curr.y}` : `${acc} L ${curr.x} ${curr.y}`;
+      }, '')
+    : '';
 
-  const areaD = coords.length > 0
+  const areaD = coords.length > 1
     ? `${pathD} L ${coords[coords.length - 1].x} ${height - paddingY} L ${coords[0].x} ${height - paddingY} Z`
     : '';
 
@@ -424,7 +448,7 @@ export const SystemStatsTab: React.FC = () => {
                 <div className="min-w-0 flex-1">
                   <span className="font-bold text-slate-900 block truncate">{m.monthName}</span>
                   <div className="text-[10px] sm:text-[11px] text-slate-400 truncate">
-                    {m.completedTasks} of {m.targetTasks} tasks ({m.performancePct}%)
+                    {m.completedTasks} of {m.targetTasks} tasks completed ({m.performancePct}%)
                   </div>
                 </div>
               </div>
@@ -437,6 +461,16 @@ export const SystemStatsTab: React.FC = () => {
               </div>
             </div>
           ))}
+
+          {monthStats.monthlyHistory.length === 0 && (
+            <div className="p-6 text-center bg-slate-50/60 rounded-2xl border border-slate-100 space-y-1">
+              <span className="text-xl">📅</span>
+              <p className="text-xs font-bold text-slate-700">No previous months archived yet</p>
+              <p className="text-[11px] text-slate-400">
+                At the end of your 4-week cycle (Week 4 Sunday), your full month's performance will be permanently recorded here.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

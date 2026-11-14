@@ -14,6 +14,8 @@ import { sound } from '../../utils/audio';
 export const SundayResetModal: React.FC = () => {
   const { state, archiveWeekAndReset, closeSundayResetModal, metrics } = useAttackMode();
 
+  const currentWeekNumber = state.currentWeekNumber || 1;
+  const isMonthEnd = currentWeekNumber === 4;
   const [nextTargetX, setNextTargetX] = useState<number>(state.dailyQuotaX);
   const [keepRecurring, setKeepRecurring] = useState(true);
 
@@ -34,10 +36,15 @@ export const SundayResetModal: React.FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🌅</span>
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-              Sunday Weekly Review & Reset
-            </h2>
+            <span className="text-xl">💾</span>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+                Save Week {currentWeekNumber} Performance
+              </h2>
+              <p className="text-[11px] text-slate-400 font-medium">
+                Week {currentWeekNumber} of 4 • {state.currentMonthName || 'Current Month'}
+              </p>
+            </div>
           </div>
 
           <button
@@ -51,7 +58,7 @@ export const SundayResetModal: React.FC = () => {
         {/* Step 1: Last Week Performance */}
         <div className="p-4 rounded-2xl bg-[#EEF0F6]/80 border border-slate-200/60 space-y-2">
           <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-            <span>Last Week's Final Result</span>
+            <span>Week {currentWeekNumber} Tasks Done</span>
             <span className="font-mono text-[#937485] text-sm">{pct}%</span>
           </div>
 
@@ -60,7 +67,9 @@ export const SundayResetModal: React.FC = () => {
           </div>
 
           <p className="text-[11px] text-slate-500 font-medium">
-            This will be archived into your permanent monthly performance scorecard.
+            {isMonthEnd
+              ? '🎉 Week 4 complete! Saving will calculate and archive your full month performance into the monthly log, then advance the cycle.'
+              : `This will lock in your Week ${currentWeekNumber} score in the report and roll over to Week ${currentWeekNumber + 1}.`}
           </p>
         </div>
 
@@ -154,7 +163,7 @@ export const SundayResetModal: React.FC = () => {
             onClick={handleConfirm}
             className="px-5 py-2.5 rounded-xl bg-[#937485] hover:bg-[#836475] text-white font-semibold text-xs tracking-wide cursor-pointer transition-colors shadow-xs"
           >
-            Archive & Start New Week
+            {isMonthEnd ? 'Save Week 4 & Archive Month' : `Save Week ${currentWeekNumber} & Advance`}
           </button>
         </div>
       </div>

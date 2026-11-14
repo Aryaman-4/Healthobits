@@ -196,32 +196,7 @@ export const INITIAL_SHERLOCK_LOGS: SherlockCaseLog[] = [
   }
 ];
 
-export const INITIAL_MONTHLY_HISTORY: MonthlyHistoryRecord[] = [
-  {
-    monthKey: '2026-11',
-    monthName: 'November 2026',
-    completedTasks: 118,
-    targetTasks: 140,
-    performancePct: 84,
-    grade: 'A'
-  },
-  {
-    monthKey: '2026-12',
-    monthName: 'December 2026',
-    completedTasks: 132,
-    targetTasks: 140,
-    performancePct: 94,
-    grade: 'S'
-  },
-  {
-    monthKey: '2027-01',
-    monthName: 'January 2027',
-    completedTasks: 124,
-    targetTasks: 140,
-    performancePct: 89,
-    grade: 'A'
-  }
-];
+export const INITIAL_MONTHLY_HISTORY: MonthlyHistoryRecord[] = [];
 
 export const DEFAULT_ANCHOR_HABITS: AnchorHabit[] = [
   {
@@ -369,36 +344,42 @@ export const getInitialAttackModeState = (): AttackModeState => {
     {
       weekNumber: 1,
       label: 'Week 1',
-      completedTasks: 31,
+      completedTasks: 0,
       targetTasks: 35,
-      grade: 'A',
-      slaOnTimeRate: 94
+      grade: 'C',
+      slaOnTimeRate: 100,
+      isSaved: false
     },
     {
       weekNumber: 2,
       label: 'Week 2',
-      completedTasks: 33,
+      completedTasks: 0,
       targetTasks: 35,
-      grade: 'S',
-      slaOnTimeRate: 100
+      grade: 'C',
+      slaOnTimeRate: 100,
+      isSaved: false
     },
     {
       weekNumber: 3,
       label: 'Week 3',
-      completedTasks: 22,
+      completedTasks: 0,
       targetTasks: 35,
-      grade: 'A',
-      slaOnTimeRate: 92
+      grade: 'C',
+      slaOnTimeRate: 100,
+      isSaved: false
     },
     {
       weekNumber: 4,
       label: 'Week 4',
       completedTasks: 0,
       targetTasks: 35,
-      grade: 'B',
-      slaOnTimeRate: 0
+      grade: 'C',
+      slaOnTimeRate: 100,
+      isSaved: false
     }
   ];
+
+  const currentMonthName = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   return {
     account: {
@@ -416,6 +397,8 @@ export const getInitialAttackModeState = (): AttackModeState => {
     activeTab: 'sections',
     selectedDayOfWeek: currentDayOfWeek,
     viewMode: 'day',
+    currentWeekNumber: 1,
+    currentMonthName,
     sectionTasks: INITIAL_SECTION_TASKS,
     archivedTasks: [],
     tasks: [],

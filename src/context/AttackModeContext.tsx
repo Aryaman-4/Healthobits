@@ -135,9 +135,27 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (saved) {
         const parsed = JSON.parse(saved);
         const initial = getInitialAttackModeState();
+
+        // Purge old hallucinated dummy future months if stored in localStorage
+        const cleanMonthlyHistory = (parsed.monthlyHistory || []).filter((m: MonthlyHistoryRecord) => {
+          return !(m.monthKey === '2026-12' || m.monthKey === '2027-01' || (m.monthKey === '2026-11' && m.completedTasks === 118));
+        });
+
+        // Clean out dummy scorecards if they were the old seed (31, 33, 22) and not actually saved by user
+        const cleanScorecards = (parsed.weeklyScorecards || initial.weeklyScorecards).map((sc: WeekScorecard) => {
+          if (!sc.isSaved && (sc.completedTasks === 31 || sc.completedTasks === 33 || sc.completedTasks === 22)) {
+            return { ...sc, completedTasks: 0, grade: 'C' as const, isSaved: false };
+          }
+          return sc;
+        });
+
         return {
           ...initial,
           ...parsed,
+          currentWeekNumber: parsed.currentWeekNumber || 1,
+          currentMonthName: parsed.currentMonthName || initial.currentMonthName,
+          weeklyScorecards: cleanScorecards,
+          monthlyHistory: cleanMonthlyHistory,
           anchorHabits: parsed.anchorHabits?.length ? parsed.anchorHabits : initial.anchorHabits,
           archivedTasks: parsed.archivedTasks || [],
           isAnchorModalOpen: false,
@@ -499,7 +517,7 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
   };
 
-  // Sunday Reset & Weekly Archive Engine
+  // Sunday Reset & Weekly Archive Engine (Saves week's performance & continues 4-week cycle)
   const archiveWeekAndReset = (nextWeekTargetX: number, keepRecurringTasks: boolean) => {
     sound.playFanfare();
     try {
@@ -519,9 +537,8 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     else grade = 'C';
 
     setState(prev => {
-      // Find current active week or advance
-      const currentActiveIndex = prev.weeklyScorecards.findIndex(sc => sc.completedTasks === 0);
-      const targetIndex = currentActiveIndex !== -1 ? currentActiveIndex : 0;
+      const currentWeekNum = prev.currentWeekNumber || 1;
+      const targetIndex = currentWeekNum - 1; // 0 for W1, 1 for W2, 2 for W3, 3 for W4
 
       const updatedScorecards = prev.weeklyScorecards.map((sc, idx) => {
         if (idx === targetIndex) {
@@ -530,7 +547,9 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             completedTasks: completedThisWeek,
             targetTasks: targetThisWeek,
             grade,
-            slaOnTimeRate: 95
+            slaOnTimeRate: 100,
+            isSaved: true,
+            savedAt: new Date().toISOString()
           };
         }
         return sc;
@@ -540,6 +559,49 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const completedToArchive = prev.sectionTasks
         .filter(t => t.isCompleted)
         .map(t => ({ ...t, archivedAt: new Date().toISOString() }));
+
+      // Check if this completes Week 4 (End of the 4-week month!)
+      let nextMonthHistory = prev.monthlyHistory || [];
+      let nextWeekNumber: 1 | 2 | 3 | 4 = ((currentWeekNum % 4) + 1) as 1 | 2 | 3 | 4;
+      let nextScorecards = updatedScorecards;
+      let nextMonthName = prev.currentMonthName || new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      if (currentWeekNum === 4) {
+        // Calculate total completed across all 4 weeks of this month
+        const monthTotalCompleted = updatedScorecards.reduce((sum, sc) => sum + sc.completedTasks, 0);
+        const monthTotalTarget = prev.dailyQuotaX * 28;
+        const monthPct = Math.round((monthTotalCompleted / monthTotalTarget) * 100);
+        let monthGrade: 'S' | 'A' | 'B' | 'C' = 'B';
+        if (monthPct >= 95) monthGrade = 'S';
+        else if (monthPct >= 85) monthGrade = 'A';
+        else if (monthPct >= 70) monthGrade = 'B';
+        else monthGrade = 'C';
+
+        const completedMonthRecord: MonthlyHistoryRecord = {
+          monthKey: new Date().toISOString().slice(0, 7),
+          monthName: prev.currentMonthName || new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+          completedTasks: monthTotalCompleted,
+          targetTasks: monthTotalTarget,
+          performancePct: monthPct,
+          grade: monthGrade
+        };
+
+        nextMonthHistory = [...nextMonthHistory, completedMonthRecord];
+
+        // Reset weekly scorecards for the new upcoming month
+        nextScorecards = [
+          { weekNumber: 1, label: 'Week 1', completedTasks: 0, targetTasks: nextWeekTargetX * 7, grade: 'C', slaOnTimeRate: 100, isSaved: false },
+          { weekNumber: 2, label: 'Week 2', completedTasks: 0, targetTasks: nextWeekTargetX * 7, grade: 'C', slaOnTimeRate: 100, isSaved: false },
+          { weekNumber: 3, label: 'Week 3', completedTasks: 0, targetTasks: nextWeekTargetX * 7, grade: 'C', slaOnTimeRate: 100, isSaved: false },
+          { weekNumber: 4, label: 'Week 4', completedTasks: 0, targetTasks: nextWeekTargetX * 7, grade: 'C', slaOnTimeRate: 100, isSaved: false }
+        ];
+
+        // Advance to next month's name
+        const now = new Date();
+        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        nextMonthName = nextMonthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        nextWeekNumber = 1;
+      }
 
       // Reset task states for fresh sprint:
       // If keepRecurringTasks is TRUE: uncheck checkmarks so tasks are fresh for the new week (NOT greyed out!)
@@ -551,7 +613,10 @@ export const AttackModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       return {
         ...prev,
         dailyQuotaX: nextWeekTargetX,
-        weeklyScorecards: updatedScorecards,
+        currentWeekNumber: nextWeekNumber,
+        currentMonthName: nextMonthName,
+        weeklyScorecards: nextScorecards,
+        monthlyHistory: nextMonthHistory,
         sectionTasks: nextTasks,
         archivedTasks: [...(prev.archivedTasks || []), ...completedToArchive],
         selectedDayOfWeek: 'Monday',
